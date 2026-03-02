@@ -5,11 +5,82 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Edit, Trash2, FileSignature, FileText, Map, Upload, X, Download, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, Plus, Edit, Trash2, FileSignature, FileText, Map, Upload, X, Download, ChevronDown, ChevronRight, FileDown } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatarNomeProprio, validarCPF, validarCNPJ, formatarCPF, formatarCNPJ } from '@/components/lib/formatters';
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
+const LOGO_BASE64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAgX0lEQVR42tWdeZxdV3Hnv3XOvW/pTUtbOzIS';
+
+const gerarRelatorioPDF = (cliente, safra, culturas, getCulturaLabel) => {
+  const doc = new jsPDF('portrait', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  let y = margin;
+  doc.setFontSize(11);
+  doc.setTextColor(45, 80, 22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CERRADO', margin, y + 4.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(80, 80, 80);
+  doc.text('Consultoria e Planejamento Agropecuário', margin, y + 8.5);
+  y += 14;
+  doc.setDrawColor(45, 80, 22);
+  doc.setLineWidth(0.6);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 10;
+  doc.setFontSize(16);
+  doc.setTextColor(33, 33, 33);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Relatório de Áreas', margin, y);
+  y += 8;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(80, 80, 80);
+  doc.text('Cliente:', margin, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(33, 33, 33);
+  doc.text(cliente, margin + 18, y);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(80, 80, 80);
+  doc.text('Safra:', margin + 90, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(33, 33, 33);
+  doc.text(safra, margin + 103, y);
+  y += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(80, 80, 80);
+  doc.text('Data:', margin, y);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(33, 33, 33);
+  doc.text(new Date().toLocaleDateString('pt-BR'), margin + 18, y);
+  y += 10;
+  let areaTotalGeral = 0;
+  Object.entries(culturas).sort(([a], [b]) => a.localeCompare(b)).forEach(([cultura, arts]) => {
+    const culturaLabel = getCulturaLabel ? getCulturaLabel(cultura) : cultura;
+    let areaSubtotal = 0;
+    const tableData = arts.map((art, idx) => {
+      const area = parseFloat(art.obra_area_ha) || 0;
+      areaSubtotal += area;
+      return [idx + 1, art.obra_imovel || '-', art.obra_cidade ? art.obra_cidade + (art.obra_uf ? '/' + art.obra_uf : '') : '-', area.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })];
+    });
+    areaTotalGeral += areaSubtotal;
+    tableData.push([{ content: 'Subtotal ' + culturaLabel, colSpan: 3, styles: { fontStyle: 'bold', fillColor: [232, 245, 233], textColor: [45, 80, 22] } }, { content: areaSubtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ha', styles: { fontStyle: 'bold', fillColor: [232, 245, 233], textColor: [45, 80, 22], halign: 'right' } }]);
+    doc.autoTable({ startY: y, head: [[{ content: culturaLabel, colSpan: 4, styles: { fillColor: [45, 80, 22], textColor: [255, 255, 255], fontSize: 10, fontStyle: 'bold' } }], ['#', 'Imóvel', 'Município', 'Área (ha)']], body: tableData, theme: 'grid', styles: { fontSize: 9, cellPadding: 3, lineColor: [210, 210, 210], lineWidth: 0.3 }, headStyles: { fillColor: [245, 245, 245], textColor: [60, 60, 60], fontStyle: 'bold', fontSize: 8 }, alternateRowStyles: { fillColor: [249, 250, 251] }, columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 45 }, 3: { cellWidth: 28, halign: 'right' } }, margin: { left: margin, right: margin } });
+    y = doc.lastAutoTable.finalY + 6;
+  });
+  doc.autoTable({ startY: y, body: [[{ content: 'ÁREA TOTAL DA SAFRA ' + safra, colSpan: 3, styles: { fontStyle: 'bold', fillColor: [45, 80, 22], textColor: [255, 255, 255], fontSize: 11 } }, { content: areaTotalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ha', styles: { fontStyle: 'bold', fillColor: [45, 80, 22], textColor: [255, 255, 255], fontSize: 11, halign: 'right' } }]], theme: 'grid', styles: { cellPadding: 4, lineColor: [45, 80, 22] }, columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 45 }, 3: { cellWidth: 28 } }, margin: { left: margin, right: margin } });
+  doc.setFontSize(7);
+  doc.setTextColor(160, 160, 160);
+  doc.setFont('helvetica', 'italic');
+  doc.text('Cerrado Consultoria - Gestão inteligente de Propriedades Rurais', pageWidth / 2, pageHeight - 10, { align: 'center' });
+  doc.save('Relatorio_' + cliente.replace(/[^a-zA-Z0-9]/g, '_') + '_' + safra.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf');
+};
 
 const CULTURAS_OPTIONS = [
   { value: "soja_sequeiro", label: "Soja Sequeiro" },
@@ -1117,7 +1188,7 @@ const CulturaDetalhes = ({ cultura, arts, onEditarART, onExcluirART, getCulturaL
 };
 
 // Componente Nível 2: Safra com culturas aninhadas
-const SafraCard = ({ safra, culturas, onEditarART, onExcluirART, getCulturaLabel }) => {
+const SafraCard = ({ safra, culturas, onEditarART, onExcluirART, getCulturaLabel, cliente }) => {
   const [expandido, setExpandido] = useState(false);
 
   const todasArts = Object.values(culturas).flat();
@@ -1144,17 +1215,18 @@ const SafraCard = ({ safra, culturas, onEditarART, onExcluirART, getCulturaLabel
           </div>
           
           <div className="flex items-center gap-4 text-sm">
-            <div className="text-right">
-              <p className="text-gray-500 text-xs">Área Total</p>
-              <p className="font-medium text-gray-800">{formatarArea(areaTotal)} ha</p>
-            </div>
-            <div className="text-right">
-              <p className="text-gray-500 text-xs">Custo Total</p>
-              <p className="font-semibold text-emerald-700">R$ {custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            </div>
+          <div className="text-right">
+            <p className="text-gray-500 text-xs">Área Total</p>
+            <p className="font-medium text-gray-800">{formatarArea(areaTotal)} ha</p>
           </div>
-        </div>
-      </div>
+          <div className="text-right">
+            <p className="text-gray-500 text-xs">Custo Total</p>
+            <p className="font-semibold text-emerald-700">R$ {custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); gerarRelatorioPDF(cliente, safra, culturas, getCulturaLabel); }} className="h-8 px-3 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-500 flex-shrink-0" title="Gerar Relatório PDF"><FileDown className="w-3.5 h-3.5 mr-1.5" />PDF</Button>
+          </div>
+          </div>
+          </div>
 
       {expandido && (
         <div className="border-t border-blue-200 bg-white/50 p-3 space-y-3">
@@ -1283,6 +1355,7 @@ const ClienteCard = ({ cliente, safras, onEditarART, onExcluirART, getCulturaLab
               onEditarART={onEditarART}
               onExcluirART={onExcluirART}
               getCulturaLabel={getCulturaLabel}
+              cliente={cliente}
             />
           ))}
         </div>
