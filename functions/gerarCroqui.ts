@@ -248,13 +248,13 @@ function generateCroquiImage(polygon, vertices) {
   
   // Labels eixos
   ctx.fillStyle = '#000000';
-  ctx.font = 'bold 24px Arial';
+  ctx.font = 'bold 14px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('Latitude (°)', 40, canvasHeight / 2);
-  ctx.fillText('Longitude (°)', canvasWidth / 2, canvasHeight - 20);
+  ctx.fillText('Latitude (°)', 20, canvasHeight / 2);
+  ctx.fillText('Longitude (°)', canvasWidth / 2, canvasHeight - 8);
   
   // Valores eixo Y
-  ctx.font = '20px Arial';
+  ctx.font = '9px Arial';
   ctx.textAlign = 'right';
   for (let i = 0; i <= 4; i++) {
     const lat = fLatMin + (i / 4) * (fLatMax - fLatMin);
