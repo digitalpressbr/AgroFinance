@@ -218,7 +218,7 @@ function generateCroquiImage(polygon, vertices) {
   const fLatMin = latMin - latRange * padding;
   const fLatMax = latMax + latRange * padding;
   
-  const graphPadding = 100;
+  const graphPadding = 50;
   const graphWidth = canvasWidth - 2 * graphPadding;
   const graphHeight = canvasHeight - 2 * graphPadding;
   
