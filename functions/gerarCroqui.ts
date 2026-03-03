@@ -327,8 +327,8 @@ function generateCroquiImage(polygon, vertices) {
   ctx.stroke();
   
   ctx.fillStyle = '#000000';
-  ctx.font = 'bold 40px Arial';
-  ctx.fillText('N', compassX, compassY - compassSize / 2 - 15);
+  ctx.font = 'bold 10px Arial';
+  ctx.fillText('N', compassX, compassY - compassSize / 2 - 5);
   
   console.log('✓ Imagem do croqui gerada');
   return canvas.toBuffer('image/png');
