@@ -267,7 +267,7 @@ function generateCroquiImage(polygon, vertices) {
   for (let i = 0; i <= 4; i++) {
     const lon = fLonMin + (i / 4) * (fLonMax - fLonMin);
     const x = graphPadding + (i / 4) * graphWidth;
-    ctx.fillText(lon.toFixed(3), x, graphPadding + graphHeight + 30);
+    ctx.fillText(lon.toFixed(3), x, graphPadding + graphHeight + 18);
   }
   
   // Polígono
