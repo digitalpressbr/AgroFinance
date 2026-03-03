@@ -228,9 +228,9 @@ function generateCroquiImage(polygon, vertices) {
   // Grid
   ctx.strokeStyle = '#DCDCDC';
   ctx.lineWidth = 1;
-  for (let i = 0; i <= 10; i++) {
-    const x = graphPadding + (i / 10) * graphWidth;
-    const y = graphPadding + (i / 10) * graphHeight;
+  for (let i = 0; i <= 5; i++) {
+    const x = graphPadding + (i / 5) * graphWidth;
+    const y = graphPadding + (i / 5) * graphHeight;
     ctx.beginPath();
     ctx.moveTo(x, graphPadding);
     ctx.lineTo(x, graphPadding + graphHeight);
