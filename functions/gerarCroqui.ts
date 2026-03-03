@@ -70,10 +70,10 @@ function simplifyPolygonDynamic(polygonFeature, targetAreaHa, maxPoints = 20, to
   }
   
   const candidates = [];
-  for (let exp = -5; exp <= -1.5; exp += 0.1) {
-    try {
-      const tolerance = Math.pow(10, exp);
-      const simplified = turf.simplify(polygonFeature, { tolerance, highQuality: true });
+  for (let exp = -5; exp <= -1.5; exp += 0.3) {
+      try {
+        const tolerance = Math.pow(10, exp);
+        const simplified = turf.simplify(polygonFeature, { tolerance, highQuality: false });
       const pointCount = simplified.geometry.coordinates[0].length - 1;
       
       if (pointCount >= 4 && pointCount <= maxPoints) {
