@@ -41,6 +41,7 @@ export default function CroquiBradesco() {
   };
   
   const [arquivoKML, setArquivoKML] = useState(null);
+  const [arquivoCAR, setArquivoCAR] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [arquivosGerados, setArquivosGerados] = useState(null);
   const [erro, setErro] = useState("");
@@ -53,6 +54,16 @@ export default function CroquiBradesco() {
     } else {
       setErro("Por favor, selecione um arquivo KML válido");
       setArquivoKML(null);
+    }
+  };
+
+  const handleCarFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.name.endsWith('.kml')) {
+      setArquivoCAR(file);
+    } else if (file) {
+      setErro("Por favor, selecione um arquivo KML válido para o CAR");
+      setArquivoCAR(null);
     }
   };
 
@@ -80,9 +91,18 @@ export default function CroquiBradesco() {
       const kmlResponse = await fetch(kmlUrl);
       const kmlContent = await kmlResponse.text();
 
+      // 2b. Se arquivo CAR fornecido, upload e buscar conteúdo
+      let carKmlContent = null;
+      if (arquivoCAR) {
+        const { file_url: carUrl } = await base44.integrations.Core.UploadFile({ file: arquivoCAR });
+        const carResponse = await fetch(carUrl);
+        carKmlContent = await carResponse.text();
+      }
+
       // 3. Chamar a backend function
       const resultado = await base44.functions.invoke('gerarCroqui', {
         kmlContent,
+        carKmlContent,
         formData: {
           fazendaNome: formulario.fazendaNome,
           matricula: formulario.matricula,
@@ -231,7 +251,7 @@ export default function CroquiBradesco() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="kml">Arquivo KML *</Label>
+              <Label htmlFor="kml">Arquivo KML da Fazenda *</Label>
               <Input
                 id="kml"
                 type="file"
@@ -244,6 +264,23 @@ export default function CroquiBradesco() {
                   ✓ {arquivoKML.name}
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="car">Arquivo KML do CAR (opcional)</Label>
+              <Input
+                id="car"
+                type="file"
+                accept=".kml"
+                onChange={handleCarFileChange}
+                className="cursor-pointer"
+              />
+              {arquivoCAR && (
+                <p className="text-sm text-green-600 flex items-center gap-1">
+                  ✓ {arquivoCAR.name}
+                </p>
+              )}
+              <p className="text-xs text-gray-500">Se fornecido, as áreas de reserva do CAR serão subtraídas do croqui</p>
             </div>
 
             {erro && (
