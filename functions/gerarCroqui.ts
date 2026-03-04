@@ -4,7 +4,47 @@ import * as turf from 'npm:@turf/turf@7.0.0';
 import { DOMParser } from 'npm:xmldom@0.6.0';
 import { jsPDF } from 'npm:jspdf@2.5.2';
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, AlignmentType, WidthType, HeadingLevel, BorderStyle, ImageRun } from 'npm:docx@8.5.0';
-import { createCanvas } from 'npm:canvas@2.11.2';
+// Canvas import dinâmico para evitar erro em Deno Deploy
+let createCanvas;
+try {
+  const canvasModule = await import('npm:canvas@2.11.2');
+  createCanvas = canvasModule.createCanvas;
+} catch (e) {
+  console.log('Aviso: módulo canvas não disponível, usando fallback simples');
+  createCanvas = function(w, h) {
+    return {
+      width: w,
+      height: h,
+      getContext: function() {
+        return {
+          fillStyle: '',
+          strokeStyle: '',
+          lineWidth: 0,
+          font: '',
+          textAlign: '',
+          textBaseline: '',
+          fillRect: function() {},
+          strokeRect: function() {},
+          beginPath: function() {},
+          moveTo: function() {},
+          lineTo: function() {},
+          closePath: function() {},
+          stroke: function() {},
+          fill: function() {},
+          fillText: function() {},
+          measureText: function() { return { width: 0 }; },
+          arc: function() {},
+          setLineDash: function() {},
+          save: function() {},
+          restore: function() {},
+          translate: function() {},
+          rotate: function() {}
+        };
+      },
+      toBuffer: function() { return new Uint8Array(0); }
+    };
+  };
+}
 
 // ========================================================================
 // PARTE 1: PROCESSAMENTO GEOESPACIAL
@@ -142,6 +182,72 @@ function adjustAreaToTarget(polygonFeature, targetAreaHa, toleranceHa = 2.0, max
   console.log(`⚠ Área após ${maxIterations} iterações: ${finalAreaHa.toFixed(2)} ha (diferença: ${Math.abs(finalAreaHa - targetAreaHa).toFixed(2)} ha)`);
   
   return current;
+}
+
+// ========================================================================
+// PARTE 1b: PROCESSAMENTO DO CAR (CADASTRO AMBIENTAL RURAL)
+// ========================================================================
+
+function parseCarKML(carKmlContent) {
+  console.log('Processando KML do CAR para extrair áreas de reserva...');
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(carKmlContent, 'text/xml');
+  const geoJson = kml(xmlDoc);
+  
+  const reserves = [];
+  if (geoJson && geoJson.features) {
+    for (const feature of geoJson.features) {
+      if (feature.geometry && (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon')) {
+        reserves.push(feature);
+      }
+    }
+  }
+  
+  console.log('  Encontradas ' + reserves.length + ' áreas de reserva no KML do CAR');
+  return reserves;
+}
+
+function subtractReserves(mainPolygon, reserves) {
+  if (!reserves || reserves.length === 0) return mainPolygon;
+  
+  console.log('Subtraindo ' + reserves.length + ' áreas de reserva do polígono principal...');
+  const originalArea = calcAreaHa(mainPolygon);
+  
+  try {
+    let result = mainPolygon;
+    for (const reserve of reserves) {
+      try {
+        const diff = turf.difference(turf.featureCollection([result, reserve]));
+        if (diff) {
+          result = diff;
+        }
+      } catch (e) {
+        console.log('  Aviso: Não foi possível subtrair uma reserva: ' + e.message);
+      }
+    }
+    
+    if (result.geometry.type === 'MultiPolygon') {
+      console.log('  Resultado é MultiPolygon, selecionando maior parte...');
+      let largest = null;
+      let largestArea = 0;
+      for (const coords of result.geometry.coordinates) {
+        const poly = turf.polygon(coords);
+        const area = calcAreaHa(poly);
+        if (area > largestArea) {
+          largestArea = area;
+          largest = poly;
+        }
+      }
+      if (largest) result = largest;
+    }
+    
+    const newArea = calcAreaHa(result);
+    console.log('  Área original: ' + originalArea.toFixed(2) + ' ha -> Após remoção: ' + newArea.toFixed(2) + ' ha');
+    return result;
+  } catch (e) {
+    console.log('  Erro ao subtrair reservas: ' + e.message + '. Usando polígono original.');
+    return mainPolygon;
+  }
 }
 
 // ========================================================================
@@ -871,9 +977,20 @@ function generateKMLString(params) {
   
   console.log('Gerando arquivo KML ajustado para a área desejada...');
   
-  const coordString = polygon.geometry.coordinates[0]
+  const coords = polygon.geometry.coordinates;
+  const outerCoordString = coords[0]
     .map(c => `${c[0].toFixed(8)},${c[1].toFixed(8)},0`)
     .join(' ');
+  
+  let innerBoundaries = '';
+  if (coords.length > 1) {
+    for (let i = 1; i < coords.length; i++) {
+      const innerCoordString = coords[i]
+        .map(c => `${c[0].toFixed(8)},${c[1].toFixed(8)},0`)
+        .join(' ');
+      innerBoundaries += `\n        <innerBoundaryIs>\n          <LinearRing>\n            <coordinates>${innerCoordString}</coordinates>\n          </LinearRing>\n        </innerBoundaryIs>`;
+    }
+  }
   
   const kmlStr = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -889,9 +1006,9 @@ function generateKMLString(params) {
       <Polygon>
         <outerBoundaryIs>
           <LinearRing>
-            <coordinates>${coordString}</coordinates>
+            <coordinates>${outerCoordString}</coordinates>
           </LinearRing>
-        </outerBoundaryIs>
+        </outerBoundaryIs>${innerBoundaries}
       </Polygon>
     </Placemark>
   </Document>
@@ -918,7 +1035,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autorizado' }, { status: 401 });
     }
     
-    const { kmlContent, formData } = await req.json();
+    const { kmlContent, carKmlContent, formData } = await req.json();
     const { fazendaNome, matricula, municipio, areaHa, maxPoints = 20, formatoCoordenadas = 'decimal' } = formData;
     
     console.log('Dados recebidos:');
@@ -930,7 +1047,17 @@ Deno.serve(async (req) => {
     
     // PASSO 1: Processa o KML e simplifica o polígono
     const polygonFeature = parseKMLFromString(kmlContent);
-    const simplifiedPolygon = simplifyPolygonDynamic(polygonFeature, parseFloat(areaHa), parseInt(maxPoints));
+    
+    // PASSO 1b: Se KML do CAR fornecido, subtrair áreas de reserva
+    let processedPolygon = polygonFeature;
+    if (carKmlContent) {
+      const reserves = parseCarKML(carKmlContent);
+      if (reserves.length > 0) {
+        processedPolygon = subtractReserves(polygonFeature, reserves);
+      }
+    }
+    
+    const simplifiedPolygon = simplifyPolygonDynamic(processedPolygon, parseFloat(areaHa), parseInt(maxPoints));
     const vertices = extractVertices(simplifiedPolygon, formatoCoordenadas);
     const finalAreaHa = calcAreaHa(simplifiedPolygon);
     
