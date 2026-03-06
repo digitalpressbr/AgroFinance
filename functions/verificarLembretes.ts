@@ -1,5 +1,40 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+async function enviarWhatsApp(numero, mensagem, imagem_url) {
+  const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
+  const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
+  const EVOLUTION_INSTANCE_NAME = Deno.env.get("EVOLUTION_INSTANCE_NAME");
+
+  const isGrupo = numero.includes('@g.us');
+  let numeroFormatado;
+  if (isGrupo) {
+    numeroFormatado = numero;
+  } else {
+    const numeroLimpo = numero.replace(/\D/g, '');
+    numeroFormatado = numeroLimpo.length === 11 ? `55${numeroLimpo}` : numeroLimpo;
+  }
+
+  if (imagem_url) {
+    const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${EVOLUTION_INSTANCE_NAME}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
+      body: JSON.stringify({ number: numeroFormatado, mediatype: 'image', media: imagem_url, caption: mensagem || '' })
+    });
+    const resultado = await response.json();
+    if (!response.ok) throw new Error(`Evolution API error: ${JSON.stringify(resultado)}`);
+    return resultado;
+  }
+
+  const response = await fetch(`${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE_NAME}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
+    body: JSON.stringify({ number: numeroFormatado, text: mensagem })
+  });
+  const resultado = await response.json();
+  if (!response.ok) throw new Error(`Evolution API error: ${JSON.stringify(resultado)}`);
+  return resultado;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
