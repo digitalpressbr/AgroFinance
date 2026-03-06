@@ -13,14 +13,14 @@ Deno.serve(async (req) => {
     console.log(`[DIAGNÓSTICO] Horário UTC: ${agora.toISOString()}`);
     console.log(`[DIAGNÓSTICO] Horário Brasília: ${String(horaBrasilia).padStart(2,'0')}:${String(minutoBrasilia).padStart(2,'0')}`);
 
-    // GUARD: Só enviar mensagens entre 6:00 e 6:59 da manhã (horário de Brasília)
-    // Isso garante que mesmo se o agendamento disparar em horário errado (ex: 9:30 BRT),
-    // as mensagens NÃO serão enviadas fora da janela correta.
-    if (horaBrasilia !== 6) {
-      console.log(`[GUARD] Fora do horário de envio (6:00-6:59 BRT). Hora atual BRT: ${horaBrasilia}:${String(minutoBrasilia).padStart(2,'0')}. Abortando.`);
+    // GUARD: Só enviar mensagens nos horários corretos (horário de Brasília)
+    // 06:00-06:59 BRT = Notificação de dia do vencimento
+    // 16:00-16:59 BRT = Aviso antecipado
+    if (horaBrasilia !== 6 && horaBrasilia !== 16) {
+      console.log(`[GUARD] Fora do horário de envio. Hora BRT: ${horaBrasilia}:${String(minutoBrasilia).padStart(2,'0')}. Envio às 6h e 16h BRT.`);
       return Response.json({
         success: true,
-        message: `Fora do horário de envio. Hora BRT: ${horaBrasilia}:${String(minutoBrasilia).padStart(2,'0')}. Envio só ocorre entre 6:00 e 6:59 BRT.`,
+        message: `Fora do horário de envio. Hora BRT: ${horaBrasilia}:${String(minutoBrasilia).padStart(2,'0')}. Envio às 6h e 16h BRT.`,
         lembretesEnviados: 0
       });
     }
