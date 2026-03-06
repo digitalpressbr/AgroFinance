@@ -218,7 +218,7 @@ const TabelaDocumentos = ({ documentos, isLoading, onAction }) => {
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-sm text-gray-600">{doc._cliente_nome || "—"}</TableCell>
                   <TableCell className="text-sm">
-                    {doc.data_vencimento ? format(new Date(doc.data_vencimento + 'T00:00:00'), "dd/MM/yyyy") : "—"}
+                    {doc.data_vencimento ? (() => { try { return format(new Date(doc.data_vencimento + 'T00:00:00'), "dd/MM/yyyy"); } catch { return "—"; } })() : "—"}
                   </TableCell>
                   <TableCell>{getStatusBadge(doc.status_documento)}</TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
