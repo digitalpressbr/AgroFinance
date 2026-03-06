@@ -355,7 +355,9 @@ export default function PainelDocumentos() {
         - nome_sugerido: nome descritivo para o documento (ex: "Certidão Matrícula 12.345 - Faz. Santa Maria")
         - data_emissao: data de emissão no formato YYYY-MM-DD (se encontrada)
         - data_vencimento: data de vencimento no formato YYYY-MM-DD (se encontrada)
-        - resumo: resumo breve do conteúdo em até 200 caracteres`,
+        - resumo: resumo breve do conteúdo em até 200 caracteres
+        - matricula_numero: número da matrícula do imóvel mencionado no documento (ex: "27.692" ou "12345"), retorne apenas os dígitos e pontos, sem texto adicional. Se não encontrar, retorne null.
+        - nome_cliente: nome completo do proprietário/cliente mencionado no documento. Se não encontrar, retorne null.`,
         file_urls: [formData.arquivo_pdf],
         response_json_schema: {
           type: "object",
@@ -364,21 +366,64 @@ export default function PainelDocumentos() {
             nome_sugerido: { type: "string" },
             data_emissao: { type: "string" },
             data_vencimento: { type: "string" },
-            resumo: { type: "string" }
+            resumo: { type: "string" },
+            matricula_numero: { type: "string" },
+            nome_cliente: { type: "string" }
           }
         }
       });
       if (resultado) {
-        setFormData(prev => ({
-          ...prev,
-          nome_documento: resultado.nome_sugerido || prev.nome_documento,
-          tipo_documento: resultado.tipo_documento || prev.tipo_documento,
-          data_emissao: resultado.data_emissao || prev.data_emissao,
-          data_vencimento: resultado.data_vencimento || prev.data_vencimento,
-          observacoes: resultado.resumo || prev.observacoes,
+        const updates = {
+          nome_documento: resultado.nome_sugerido || formData.nome_documento,
+          tipo_documento: resultado.tipo_documento || formData.tipo_documento,
+          data_emissao: resultado.data_emissao || formData.data_emissao,
+          data_vencimento: resultado.data_vencimento || formData.data_vencimento,
+          observacoes: resultado.resumo || formData.observacoes,
           dados_extracao_ia: JSON.stringify(resultado)
-        }));
-        toast.success("Dados extraídos com sucesso pela IA!");
+        };
+
+        // Tentar encontrar o cliente pelo nome extraído
+        if (resultado.nome_cliente) {
+          const nomeNormalizado = resultado.nome_cliente.toLowerCase().trim();
+          const clienteEncontrado = clientes.find(c =>
+            c.nome.toLowerCase().includes(nomeNormalizado) ||
+            nomeNormalizado.includes(c.nome.toLowerCase())
+          );
+          if (clienteEncontrado) {
+            updates.cliente_id = clienteEncontrado.id;
+          }
+        }
+
+        // Tentar encontrar o imóvel pela matrícula extraída
+        if (resultado.matricula_numero) {
+          const matriculaNorm = resultado.matricula_numero.replace(/\D/g, '');
+          const clienteIdFiltro = updates.cliente_id || formData.cliente_id;
+          const imoveisParaBuscar = clienteIdFiltro
+            ? imoveis.filter(i => i.cliente_id === clienteIdFiltro)
+            : imoveis;
+
+          const imovelEncontrado = imoveisParaBuscar.find(i => {
+            if (!i.matricula_numero) return false;
+            const matNorm = String(i.matricula_numero).replace(/\D/g, '');
+            return matNorm === matriculaNorm;
+          });
+
+          if (imovelEncontrado) {
+            updates.imovel_id = imovelEncontrado.id;
+          }
+        }
+
+        setFormData(prev => ({ ...prev, ...updates }));
+
+        const camposPreenchidos = [];
+        if (updates.imovel_id) camposPreenchidos.push("imóvel");
+        if (updates.cliente_id) camposPreenchidos.push("cliente");
+        
+        if (camposPreenchidos.length > 0) {
+          toast.success(`Dados extraídos! ${camposPreenchidos.join(" e ")} identificado(s) automaticamente.`);
+        } else {
+          toast.success("Dados extraídos com sucesso pela IA!");
+        }
       }
     } catch (error) {
       toast.error("Erro ao extrair dados com IA");
