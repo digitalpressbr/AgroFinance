@@ -403,6 +403,9 @@ CAMPOS A EXTRAIR:
           tipo_documento: resultado.tipo_documento || formData.tipo_documento,
           data_emissao: resultado.data_emissao || formData.data_emissao,
           data_vencimento: resultado.data_vencimento || formData.data_vencimento,
+          ...(resultado.data_inicio_contrato ? { data_inicio_contrato: resultado.data_inicio_contrato } : {}),
+          ...(resultado.data_fim_contrato ? { data_fim_contrato: resultado.data_fim_contrato } : {}),
+          ...(resultado.exercicio ? { exercicio: resultado.exercicio } : {}),
           observacoes: resultado.resumo || formData.observacoes,
           dados_extracao_ia: JSON.stringify(resultado)
         };
