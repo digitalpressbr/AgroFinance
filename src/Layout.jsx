@@ -405,8 +405,36 @@ export default function Layout({ children, currentPageName }) {
         <Sidebar className="border-r bg-white">
           <SidebarHeader className="border-b px-4 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600 text-white">
-                <Sprout className="h-6 w-6" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden shadow-md">
+                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+                  <defs>
+                    <linearGradient id="bgGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#14532d"/>
+                      <stop offset="100%" stopColor="#166534"/>
+                    </linearGradient>
+                    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+                      <stop offset="0%" stopColor="#86efac"/>
+                      <stop offset="100%" stopColor="#16a34a"/>
+                    </linearGradient>
+                    <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+                      <stop offset="0%" stopColor="#fde68a"/>
+                      <stop offset="100%" stopColor="#f59e0b"/>
+                    </linearGradient>
+                  </defs>
+                  {/* Fundo */}
+                  <rect width="40" height="40" rx="10" fill="url(#bgGrad)"/>
+                  {/* Barras crescentes */}
+                  <rect x="6" y="26" width="5" height="8" rx="1.5" fill="url(#barGrad)" opacity="0.85"/>
+                  <rect x="13" y="21" width="5" height="13" rx="1.5" fill="url(#barGrad)" opacity="0.92"/>
+                  <rect x="20" y="16" width="5" height="18" rx="1.5" fill="url(#barGrad)"/>
+                  {/* Linha de tendência dourada */}
+                  <polyline points="8.5,25 15.5,20 22.5,15 29,9" stroke="url(#goldGrad)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                  {/* Broto/folha estilizado no topo direito */}
+                  <path d="M29 9 C29 9 33 7 34 11 C35 15 31 16 29 14 C27 12 29 9 29 9Z" fill="url(#goldGrad)" opacity="0.95"/>
+                  <path d="M29 9 C29 9 26 6 27 10 C28 13 31 13 31 11" fill="#a3e635" opacity="0.7"/>
+                  {/* Hastes do broto */}
+                  <line x1="29" y1="9" x2="29" y2="14" stroke="#fde68a" strokeWidth="1.2" strokeLinecap="round"/>
+                </svg>
               </div>
               <div>
                 <h1 className="text-lg font-bold text-green-800">AgroFinance</h1>
