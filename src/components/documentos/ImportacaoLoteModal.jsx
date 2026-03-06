@@ -13,6 +13,7 @@ import {
 
 const STATUS = { PENDENTE: "pendente", PROCESSANDO: "processando", CONCLUIDO: "concluido", ERRO: "erro" };
 
+
 const TIPOS_DOCUMENTO = ["Certidão", "Contrato", "Carta de Anuência", "Laudo Técnico", "ART", "Outro"];
 
 function calcularStatus(data_vencimento) {
