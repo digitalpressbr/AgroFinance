@@ -155,60 +155,52 @@ _Lembrete automático - AgroFinance_`;
 
         await enviarWhatsApp(destino, mensagem);
 
-        {
-          // Atualizar o status do lembrete
-          const updateData = {};
-          if (deveEnviarNoDia) {
-            updateData.lembrete_enviado = true;
+        // Atualizar o status do lembrete
+        const updateData = {};
+        if (deveEnviarNoDia) {
+          updateData.lembrete_enviado = true;
+          
+          // Se for conta recorrente e foi enviado no dia, criar a próxima parcela
+          if (conta.recorrente && conta.parcela_atual < conta.parcelas_total) {
+            const proximaData = new Date(conta.data_vencimento + 'T00:00:00');
+            proximaData.setMonth(proximaData.getMonth() + 1);
             
-            // Se for conta recorrente e foi enviado no dia, criar a próxima parcela
-            if (conta.recorrente && conta.parcela_atual < conta.parcelas_total) {
-              const proximaData = new Date(conta.data_vencimento + 'T00:00:00');
-              proximaData.setMonth(proximaData.getMonth() + 1);
-              
-              const proximaConta = {
-                descricao: conta.descricao,
-                valor: conta.valor,
-                data_vencimento: proximaData.toISOString().split('T')[0],
-                dias_antes_avisar: conta.dias_antes_avisar,
-                telefone_contato: conta.telefone_contato,
-                grupo_whatsapp_id: conta.grupo_whatsapp_id,
-                chave_pix: conta.chave_pix,
-                fornecedor: conta.fornecedor,
-                categoria: conta.categoria,
-                observacoes: conta.observacoes,
-                ativo: conta.ativo,
-                recorrente: true,
-                parcelas_total: conta.parcelas_total,
-                parcela_atual: conta.parcela_atual + 1,
-                data_vencimento_final: conta.data_vencimento_final,
-                grupo_recorrencia_id: conta.grupo_recorrencia_id,
-                pago: false,
-                lembrete_enviado: false,
-                lembrete_antecipado_enviado: false,
-                codigo_barras: null,
-                boleto_anexo: null,
-                recibo_anexo: null
-              };
-              
-              await base44.asServiceRole.entities.ContaPagar.create(proximaConta);
-              console.log(`Próxima parcela criada: ${conta.parcela_atual + 1}/${conta.parcelas_total}`);
-            }
+            const proximaConta = {
+              descricao: conta.descricao,
+              valor: conta.valor,
+              data_vencimento: proximaData.toISOString().split('T')[0],
+              dias_antes_avisar: conta.dias_antes_avisar,
+              telefone_contato: conta.telefone_contato,
+              grupo_whatsapp_id: conta.grupo_whatsapp_id,
+              chave_pix: conta.chave_pix,
+              fornecedor: conta.fornecedor,
+              categoria: conta.categoria,
+              observacoes: conta.observacoes,
+              ativo: conta.ativo,
+              recorrente: true,
+              parcelas_total: conta.parcelas_total,
+              parcela_atual: conta.parcela_atual + 1,
+              data_vencimento_final: conta.data_vencimento_final,
+              grupo_recorrencia_id: conta.grupo_recorrencia_id,
+              pago: false,
+              lembrete_enviado: false,
+              lembrete_antecipado_enviado: false,
+              codigo_barras: null,
+              boleto_anexo: null,
+              recibo_anexo: null
+            };
+            
+            await base44.asServiceRole.entities.ContaPagar.create(proximaConta);
+            console.log(`Próxima parcela criada: ${conta.parcela_atual + 1}/${conta.parcelas_total}`);
           }
-          if (deveEnviarAntecipado) {
-            updateData.lembrete_antecipado_enviado = true;
-          }
-
-          await base44.asServiceRole.entities.ContaPagar.update(conta.id, updateData);
-          lembretesEnviados++;
-          console.log(`Lembrete enviado: ${conta.descricao} (tipo: ${deveEnviarNoDia ? 'DIA' : 'ANTECIPADO'})`);
-        } else {
-          erros.push({
-            conta: conta.descricao,
-            erro: resultado?.error || 'Erro desconhecido'
-          });
-          console.error(`Erro ao enviar lembrete ${conta.descricao}:`, resultado?.error);
         }
+        if (deveEnviarAntecipado) {
+          updateData.lembrete_antecipado_enviado = true;
+        }
+
+        await base44.asServiceRole.entities.ContaPagar.update(conta.id, updateData);
+        lembretesEnviados++;
+        console.log(`Lembrete enviado: ${conta.descricao} (tipo: ${deveEnviarNoDia ? 'DIA' : 'ANTECIPADO'})`);
 
       } catch (error) {
         erros.push({
