@@ -365,11 +365,11 @@ _Mensagem automática - AgroFinance_`;
                 )}
               </div>
 
-              {/* Seção de Boleto */}
+              {/* Seção de Boleto e Lembretes */}
               <div className="border-t pt-4 mt-2">
                 <div className="flex items-center gap-2 mb-4">
                   <Receipt className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-sm font-semibold text-gray-700">Boleto</h3>
+                  <h3 className="text-sm font-semibold text-gray-700">Boleto e Lembretes</h3>
                 </div>
                 
                 <div className="space-y-4">
@@ -386,64 +386,59 @@ _Mensagem automática - AgroFinance_`;
                     </Label>
                   </div>
 
-                  {formData.boleto_emitido && (
-                    <div className="space-y-4">
-                      <div>
-                        <Label>Data de Vencimento do Boleto *</Label>
-                        <Input
-                          type="date"
-                          value={formData.data_vencimento_boleto}
-                          onChange={(e) => setFormData({...formData, data_vencimento_boleto: e.target.value, lembrete_enviado: false})}
-                          required={formData.boleto_emitido}
-                          className="mt-1"
-                        />
-                      </div>
+                  <div>
+                    <Label>Data de Cobrança / Vencimento</Label>
+                    <Input
+                      type="date"
+                      value={formData.data_vencimento_boleto}
+                      onChange={(e) => setFormData({...formData, data_vencimento_boleto: e.target.value, lembrete_enviado: false})}
+                      className="mt-1"
+                    />
+                  </div>
 
-                      <div>
-                        <Label>Telefone/WhatsApp para Lembrete</Label>
-                        <div className="flex gap-2 mt-1">
-                          <Input
-                            type="tel"
-                            value={formData.telefone_contato}
-                            onChange={handleTelefoneChange}
-                            placeholder="(62) 99999-9999"
-                            maxLength={15}
-                            className="flex-1"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleEnviarTeste}
-                            disabled={!formData.telefone_contato || enviandoTeste}
-                            className="whitespace-nowrap"
-                          >
-                            {enviandoTeste ? "Enviando..." : "📱 Testar"}
-                          </Button>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Digite o número com DDD e teste o envio antes de ativar os lembretes automáticos
-                        </p>
-                      </div>
-
-                      <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg">
-                        <input
-                          type="checkbox"
-                          id="enviar_lembrete_whatsapp"
-                          checked={formData.enviar_lembrete_whatsapp}
-                          onChange={(e) => setFormData({...formData, enviar_lembrete_whatsapp: e.target.checked})}
-                          className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 mt-0.5"
-                        />
-                        <div>
-                          <Label htmlFor="enviar_lembrete_whatsapp" className="text-sm font-medium cursor-pointer text-green-800">
-                            📱 Enviar lembretes automáticos via WhatsApp
-                          </Label>
-                          <p className="text-xs text-green-600 mt-1">
-                            Se marcado, enviará lembretes via WhatsApp 3 dias antes e no dia do vencimento
-                          </p>
-                        </div>
-                      </div>
+                  <div>
+                    <Label>Telefone/WhatsApp para Lembrete</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        type="tel"
+                        value={formData.telefone_contato}
+                        onChange={handleTelefoneChange}
+                        placeholder="(62) 99999-9999"
+                        maxLength={15}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleEnviarTeste}
+                        disabled={!formData.telefone_contato || enviandoTeste}
+                        className="whitespace-nowrap"
+                      >
+                        {enviandoTeste ? "Enviando..." : "📱 Testar"}
+                      </Button>
                     </div>
-                  )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Digite o número com DDD e teste o envio antes de ativar os lembretes automáticos
+                    </p>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-green-50 p-3 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="enviar_lembrete_whatsapp"
+                      checked={formData.enviar_lembrete_whatsapp}
+                      onChange={(e) => setFormData({...formData, enviar_lembrete_whatsapp: e.target.checked})}
+                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 mt-0.5"
+                    />
+                    <div>
+                      <Label htmlFor="enviar_lembrete_whatsapp" className="text-sm font-medium cursor-pointer text-green-800">
+                        📱 Enviar lembretes automáticos via WhatsApp
+                      </Label>
+                      <p className="text-xs text-green-600 mt-1">
+                        Se marcado, enviará lembretes via WhatsApp no dia do vencimento
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
