@@ -1322,14 +1322,13 @@ ${valor}`
                         </div>
 
                         <div>
-                          <Label>Telefone/WhatsApp {!formDataConta.grupo_whatsapp_id && "*"}</Label>
+                          <Label>Telefone/WhatsApp</Label>
                           <Input
-                            type="tel"
-                            value={formDataConta.telefone_contato}
-                            onChange={(e) => handleTelefoneChange(e.target.value, 'conta')}
-                            placeholder="(62) 99999-9999"
-                            maxLength={15}
-                            required={!formDataConta.grupo_whatsapp_id}
+                           type="tel"
+                           value={formDataConta.telefone_contato}
+                           onChange={(e) => handleTelefoneChange(e.target.value, 'conta')}
+                           placeholder="(62) 99999-9999"
+                           maxLength={15}
                           />
                           <p className="text-xs text-gray-500 mt-1">
                             {formDataConta.grupo_whatsapp_id 
