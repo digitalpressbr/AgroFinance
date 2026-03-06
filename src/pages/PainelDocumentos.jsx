@@ -492,6 +492,9 @@ export default function PainelDocumentos() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input placeholder="Buscar documento..." className="pl-10 w-full sm:w-56" value={busca} onChange={(e) => setBusca(e.target.value)} />
           </div>
+          <Button variant="outline" onClick={() => setModalImportacaoAberto(true)} className="border-green-600 text-green-700 hover:bg-green-50">
+            <Upload className="mr-2 h-4 w-4" /> Importar Vários
+          </Button>
           <Button onClick={abrirNovoDocumento} className="bg-green-600 hover:bg-green-700">
             <Plus className="mr-2 h-4 w-4" /> Novo Documento
           </Button>
