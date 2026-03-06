@@ -28,18 +28,27 @@ Deno.serve(async (req) => {
 
         const diasRestantes = Math.floor((dataEvento - hoje) / (1000 * 60 * 60 * 24));
 
-        // Verificar se deve enviar o lembrete antecipado (somente entre 11h00 e 11h06)
+        // === LEMBRETE NO DIA DO VENCIMENTO (7:00-7:06 BRT) ===
+        let deveEnviarNoDia = false;
+        if (diasRestantes === 0 && !lembrete.lembrete_enviado) {
+          const horaAtual = agoraBrasilia.getHours();
+          const minutoAtual = agoraBrasilia.getMinutes();
+          if (horaAtual === 7 && minutoAtual <= 6) {
+            deveEnviarNoDia = true;
+          }
+        }
+
+        // === LEMBRETE ANTECIPADO (11:00-11:06 BRT) ===
         let deveEnviarAntecipado = false;
         if (diasRestantes === lembrete.dias_antes_avisar && !lembrete.lembrete_antecipado_enviado) {
           const horaAtual = agoraBrasilia.getHours();
           const minutoAtual = agoraBrasilia.getMinutes();
-          // Enviar apenas entre 11h00 e 11h06 (janela de 6 minutos para capturar)
           if (horaAtual === 11 && minutoAtual <= 6) {
             deveEnviarAntecipado = true;
           }
         }
 
-        // Verificar se deve enviar 10 minutos antes (FIXO)
+        // === LEMBRETE 10 MINUTOS ANTES ===
         let deveEnviar10MinAntes = false;
         if (lembrete.hora_evento && diasRestantes === 0 && !lembrete.lembrete_10min_enviado) {
           const [horas, minutos] = lembrete.hora_evento.split(':').map(Number);
@@ -47,14 +56,14 @@ Deno.serve(async (req) => {
           horarioEvento.setHours(horas, minutos, 0, 0);
           
           const horario10MinAntes = new Date(horarioEvento.getTime() - 10 * 60 * 1000);
-          const janelaEnvio = 6 * 60 * 1000; // Janela de 6 minutos
+          const janelaEnvio = 6 * 60 * 1000;
           
           if (agoraBrasilia >= horario10MinAntes && (agoraBrasilia - horario10MinAntes) <= janelaEnvio) {
             deveEnviar10MinAntes = true;
           }
         }
 
-        // Verificar se deve enviar aviso extra (30min ou 1h antes)
+        // === AVISO EXTRA (30min ou 1h antes) ===
         let deveEnviarExtra = false;
         if (lembrete.hora_evento && lembrete.aviso_extra_minutos && diasRestantes === 0 && !lembrete.lembrete_extra_enviado) {
           const [horas, minutos] = lembrete.hora_evento.split(':').map(Number);
@@ -62,14 +71,14 @@ Deno.serve(async (req) => {
           horarioEvento.setHours(horas, minutos, 0, 0);
           
           const horarioExtra = new Date(horarioEvento.getTime() - lembrete.aviso_extra_minutos * 60 * 1000);
-          const janelaEnvio = 6 * 60 * 1000; // Janela de 6 minutos
+          const janelaEnvio = 6 * 60 * 1000;
           
           if (agoraBrasilia >= horarioExtra && (agoraBrasilia - horarioExtra) <= janelaEnvio) {
             deveEnviarExtra = true;
           }
         }
 
-        if (!deveEnviarAntecipado && !deveEnviar10MinAntes && !deveEnviarExtra) {
+        if (!deveEnviarNoDia && !deveEnviarAntecipado && !deveEnviar10MinAntes && !deveEnviarExtra) {
           continue;
         }
 
@@ -79,7 +88,18 @@ Deno.serve(async (req) => {
           : '';
 
         let mensagem;
-        if (deveEnviar10MinAntes) {
+        if (deveEnviarNoDia) {
+          mensagem = `🔔 *LEMBRETE - VENCE HOJE!*
+
+📋 *${lembrete.descricao}*
+
+📅 *Data:* ${dataFormatada}
+${lembrete.hora_evento ? `⏰ *Horário:* ${lembrete.hora_evento}\n` : ''}${valorTexto}
+${lembrete.link_acesso ? `🔗 *Link:* ${lembrete.link_acesso}\n` : ''}${lembrete.observacoes ? `📝 ${lembrete.observacoes}\n` : ''}
+⚠️ *Este lembrete vence HOJE!*
+
+_Lembrete automático - AgroFinance_`;
+        } else if (deveEnviar10MinAntes) {
           mensagem = `🔔 *LEMBRETE - EVENTO COMEÇANDO EM 10 MINUTOS!*
 
 📋 *${lembrete.descricao}*
@@ -116,12 +136,9 @@ ${lembrete.link_acesso ? `🔗 *Link de Acesso:*\n${lembrete.link_acesso}\n\n` :
 _Lembrete automático - AgroFinance_`;
         }
 
-        // Enviar WhatsApp - SEMPRE enviar para telefone individual primeiro
-        // Se também tiver grupo configurado, enviar para o grupo depois
-        
         let enviouComSucesso = false;
         
-        // 1. Enviar para telefone individual (obrigatório)
+        // 1. Enviar para telefone individual
         if (lembrete.telefone_contato) {
           const responseTelefone = await base44.asServiceRole.functions.invoke('enviarWhatsAppEvolution', {
             numero: lembrete.telefone_contato,
@@ -135,12 +152,11 @@ _Lembrete automático - AgroFinance_`;
             });
             console.error(`Erro ao enviar para telefone ${lembrete.descricao}:`, responseTelefone.error);
           } else {
-            console.log(`Lembrete enviado para telefone: ${lembrete.descricao}`);
+            console.log(`Lembrete enviado para telefone: ${lembrete.descricao} (tipo: ${deveEnviarNoDia ? 'DIA' : deveEnviar10MinAntes ? '10MIN' : deveEnviarExtra ? 'EXTRA' : 'ANTECIPADO'})`);
             lembretesEnviados++;
             enviouComSucesso = true;
           }
 
-          // Aguardar 1 segundo antes de enviar para o grupo
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
@@ -163,9 +179,12 @@ _Lembrete automático - AgroFinance_`;
           }
         }
 
-        // Marcar como enviado se PELO MENOS um destino teve sucesso
+        // Marcar flags de envio
         if (enviouComSucesso) {
           const updateData = {};
+          if (deveEnviarNoDia) {
+            updateData.lembrete_enviado = true;
+          }
           if (deveEnviarAntecipado) {
             updateData.lembrete_antecipado_enviado = true;
           }
