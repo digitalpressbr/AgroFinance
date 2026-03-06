@@ -575,6 +575,15 @@ export default function PainelDocumentos() {
         </div>
       </div>
 
+      {/* Modal Importação em Lote */}
+      <ImportacaoLoteModal
+        open={modalImportacaoAberto}
+        onClose={() => setModalImportacaoAberto(false)}
+        clientes={clientes}
+        imoveis={imoveis}
+        onSalvoConcluido={fetchData}
+      />
+
       {/* Modal Novo / Editar */}
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
