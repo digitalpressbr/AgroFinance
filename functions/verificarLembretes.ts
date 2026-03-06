@@ -28,25 +28,11 @@ Deno.serve(async (req) => {
 
         const diasRestantes = Math.floor((dataEvento - hoje) / (1000 * 60 * 60 * 24));
 
-        // === LEMBRETE NO DIA DO VENCIMENTO (7:00-7:06 BRT) ===
-        let deveEnviarNoDia = false;
-        if (diasRestantes === 0 && !lembrete.lembrete_enviado) {
-          const horaAtual = agoraBrasilia.getHours();
-          const minutoAtual = agoraBrasilia.getMinutes();
-          if (horaAtual === 7 && minutoAtual <= 6) {
-            deveEnviarNoDia = true;
-          }
-        }
+        // === LEMBRETE NO DIA DO VENCIMENTO ===
+        const deveEnviarNoDia = diasRestantes === 0 && !lembrete.lembrete_enviado;
 
-        // === LEMBRETE ANTECIPADO (11:00-11:06 BRT) ===
-        let deveEnviarAntecipado = false;
-        if (diasRestantes === lembrete.dias_antes_avisar && !lembrete.lembrete_antecipado_enviado) {
-          const horaAtual = agoraBrasilia.getHours();
-          const minutoAtual = agoraBrasilia.getMinutes();
-          if (horaAtual === 11 && minutoAtual <= 6) {
-            deveEnviarAntecipado = true;
-          }
-        }
+        // === LEMBRETE ANTECIPADO (X dias antes) ===
+        const deveEnviarAntecipado = diasRestantes > 0 && diasRestantes === lembrete.dias_antes_avisar && !lembrete.lembrete_antecipado_enviado;
 
         // === LEMBRETE 10 MINUTOS ANTES ===
         let deveEnviar10MinAntes = false;
