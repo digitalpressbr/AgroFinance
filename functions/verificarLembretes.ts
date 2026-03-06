@@ -11,11 +11,10 @@ Deno.serve(async (req) => {
 
     // Horário de Brasília (UTC-3)
     const agora = new Date();
-    const offsetBrasilia = -3 * 60; // UTC-3 em minutos
-    const offsetAtual = agora.getTimezoneOffset(); // offset do servidor em minutos
-    const diferencaMinutos = offsetBrasilia - offsetAtual;
-    const agoraBrasilia = new Date(agora.getTime() + diferencaMinutos * 60 * 1000);
+    const agoraBrasilia = new Date(agora.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
     
+    console.log(`[DIAGNÓSTICO] UTC: ${agora.toISOString()} | BRT: ${String(agoraBrasilia.getHours()).padStart(2,'0')}:${String(agoraBrasilia.getMinutes()).padStart(2,'0')}`);
+
     const hoje = new Date(agoraBrasilia);
     hoje.setHours(0, 0, 0, 0);
 
@@ -40,8 +39,6 @@ Deno.serve(async (req) => {
           }
         }
 
-
-
         // Verificar se deve enviar 10 minutos antes (FIXO)
         let deveEnviar10MinAntes = false;
         if (lembrete.hora_evento && diasRestantes === 0 && !lembrete.lembrete_10min_enviado) {
@@ -50,9 +47,8 @@ Deno.serve(async (req) => {
           horarioEvento.setHours(horas, minutos, 0, 0);
           
           const horario10MinAntes = new Date(horarioEvento.getTime() - 10 * 60 * 1000);
-          const janelaEnvio = 6 * 60 * 1000; // Janela de 6 minutos para capturar o envio (considera que roda a cada 5min)
+          const janelaEnvio = 6 * 60 * 1000; // Janela de 6 minutos
           
-          // Enviar apenas se estiver dentro da janela de 6 minutos após o horário planejado
           if (agoraBrasilia >= horario10MinAntes && (agoraBrasilia - horario10MinAntes) <= janelaEnvio) {
             deveEnviar10MinAntes = true;
           }
@@ -66,9 +62,8 @@ Deno.serve(async (req) => {
           horarioEvento.setHours(horas, minutos, 0, 0);
           
           const horarioExtra = new Date(horarioEvento.getTime() - lembrete.aviso_extra_minutos * 60 * 1000);
-          const janelaEnvio = 6 * 60 * 1000; // Janela de 6 minutos para capturar o envio (considera que roda a cada 5min)
+          const janelaEnvio = 6 * 60 * 1000; // Janela de 6 minutos
           
-          // Enviar apenas se estiver dentro da janela de 6 minutos após o horário planejado
           if (agoraBrasilia >= horarioExtra && (agoraBrasilia - horarioExtra) <= janelaEnvio) {
             deveEnviarExtra = true;
           }
@@ -170,7 +165,6 @@ _Lembrete automático - AgroFinance_`;
 
         // Marcar como enviado se PELO MENOS um destino teve sucesso
         if (enviouComSucesso) {
-          // Atualizar o status do lembrete
           const updateData = {};
           if (deveEnviarAntecipado) {
             updateData.lembrete_antecipado_enviado = true;
