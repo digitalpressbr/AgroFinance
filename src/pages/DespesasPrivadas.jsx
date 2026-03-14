@@ -116,6 +116,11 @@ export default function DespesasPrivadas() {
   const [showGruposWhatsApp, setShowGruposWhatsApp] = useState(false);
   const [gruposWhatsApp, setGruposWhatsApp] = useState([]);
   const [carregandoGrupos, setCarregandoGrupos] = useState(false);
+  const [chavesPix, setChavesPix] = useState([]);
+  const [showGerenciarPix, setShowGerenciarPix] = useState(false);
+  const [formChavePix, setFormChavePix] = useState({ descricao: "", chave: "", tipo: "cpf" });
+  const [editingChavePix, setEditingChavePix] = useState(null);
+  const [gruposPixExpandidos, setGruposPixExpandidos] = useState({});
 
   useEffect(() => {
     if (autenticado) carregarDados();
