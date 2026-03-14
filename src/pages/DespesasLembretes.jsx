@@ -1280,64 +1280,7 @@ ${valor}`
                       </p>
                     </div>
 
-                    <div className="border rounded-lg p-3 bg-blue-50">
-                      <h3 className="text-sm font-semibold mb-3 text-blue-900">📱 Destino da Notificação</h3>
-
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <Label>Grupo WhatsApp (opcional)</Label>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => carregarGruposWhatsApp(true)}
-                              disabled={carregandoGrupos}
-                              className="h-6 text-xs"
-                            >
-                              {carregandoGrupos ? "🔄 Atualizando..." : "🔄 Atualizar"}
-                            </Button>
-                          </div>
-                          <Select
-                            value={formDataConta.grupo_whatsapp_id || ""}
-                            onValueChange={(value) => setFormDataConta({...formDataConta, grupo_whatsapp_id: value === "" ? "" : value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Enviar para número individual" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={null}>🔹 Número Individual</SelectItem>
-                              {gruposDisponiveis.map((grupo) => (
-                                <SelectItem key={grupo.id} value={grupo.id}>
-                                  👥 {grupo.subject}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {formDataConta.grupo_whatsapp_id 
-                              ? "👥 Será enviado para o grupo selecionado" 
-                              : "📱 Se não selecionar grupo, envia para número individual"}
-                          </p>
-                        </div>
-
-                        <div>
-                          <Label>Telefone/WhatsApp</Label>
-                          <Input
-                           type="tel"
-                           value={formDataConta.telefone_contato}
-                           onChange={(e) => handleTelefoneChange(e.target.value, 'conta')}
-                           placeholder="(62) 99999-9999"
-                           maxLength={15}
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            {formDataConta.grupo_whatsapp_id 
-                              ? "Número alternativo (opcional quando grupo selecionado)" 
-                              : "Número para receber as notificações"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    {/* Destino da Notificação oculto - grupo fixo definido ao salvar */}
                   </div>
 
                   <div>
@@ -1623,66 +1566,7 @@ ${valor}`
                       </p>
                     </div>
 
-                    <div className="border rounded-lg p-3 bg-blue-50">
-                      <h3 className="text-sm font-semibold mb-3 text-blue-900">📱 Destino da Notificação</h3>
-
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <Label className="text-xs text-gray-600">Grupo WhatsApp (opcional)</Label>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => carregarGruposWhatsApp(true)}
-                              disabled={carregandoGrupos}
-                              className="h-6 text-xs"
-                              >
-                              {carregandoGrupos ? "🔄 Atualizando..." : "🔄 Atualizar"}
-                            </Button>
-                          </div>
-                          <Select
-                            value={formDataLembrete.grupo_whatsapp_id || ""}
-                            onValueChange={(value) => setFormDataLembrete({...formDataLembrete, grupo_whatsapp_id: value === "" ? "" : value})}
-                          >
-                            <SelectTrigger className="h-9">
-                              <SelectValue placeholder="Enviar para número individual" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={null}>🔹 Número Individual</SelectItem>
-                              {gruposDisponiveis.map((grupo) => (
-                                <SelectItem key={grupo.id} value={grupo.id}>
-                                  👥 {grupo.subject}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {formDataLembrete.grupo_whatsapp_id 
-                              ? "👥 Será enviado para o grupo selecionado" 
-                              : "📱 Se não selecionar grupo, envia para número individual"}
-                          </p>
-                        </div>
-
-                        <div>
-                          <Label className="text-xs text-gray-600">Telefone/WhatsApp {!formDataLembrete.grupo_whatsapp_id && "*"}</Label>
-                          <Input
-                            type="tel"
-                            value={formDataLembrete.telefone_contato}
-                            onChange={(e) => handleTelefoneChange(e.target.value, 'lembrete')}
-                            placeholder="(62) 99999-9999"
-                            maxLength={15}
-                            required={!formDataLembrete.grupo_whatsapp_id}
-                            className="h-9"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            {formDataLembrete.grupo_whatsapp_id 
-                              ? "Número alternativo (opcional quando grupo selecionado)" 
-                              : "Número para receber as notificações"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    {/* Destino da Notificação oculto - grupo fixo definido ao salvar */}
                   </div>
 
                   <div>
