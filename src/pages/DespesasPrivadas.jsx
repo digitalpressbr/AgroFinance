@@ -358,9 +358,14 @@ export default function DespesasPrivadas() {
           </h1>
           <p className="text-gray-500 text-sm mt-1">{contas.length} despesa(s) privada(s)</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="bg-gray-900 hover:bg-gray-800">
-          <Plus className="w-4 h-4 mr-2" /> Nova Despesa Privada
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleVerGruposWhatsApp} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+            👥 Ver Grupos WhatsApp
+          </Button>
+          <Button onClick={() => setShowForm(true)} className="bg-gray-900 hover:bg-gray-800">
+            <Plus className="w-4 h-4 mr-2" /> Nova Despesa Privada
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
