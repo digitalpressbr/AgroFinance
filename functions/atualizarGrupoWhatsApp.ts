@@ -1,10 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-async function processChunks(items, updateFn, chunkSize = 3) {
-  for (let i = 0; i < items.length; i += chunkSize) {
-    const chunk = items.slice(i, i + chunkSize);
-    await Promise.all(chunk.map(updateFn));
-    await new Promise(r => setTimeout(r, 500));
+async function processSeq(items, updateFn, delay = 200) {
+  for (const item of items) {
+    await updateFn(item);
+    await new Promise(r => setTimeout(r, delay));
   }
 }
 
