@@ -1,5 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+async function processChunks(items, updateFn, chunkSize = 5) {
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    await Promise.all(chunk.map(updateFn));
+    if (i + chunkSize < items.length) {
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -12,19 +22,22 @@ Deno.serve(async (req) => {
 
     console.log(`ContaPagar: ${contas.length}, Lembretes: ${lembretes.length}`);
 
-    await Promise.all([
-      ...contas.map(c => base44.asServiceRole.entities.ContaPagar.update(c.id, { grupo_whatsapp_id: GRUPO_ID })),
-      ...lembretes.map(l => base44.asServiceRole.entities.Lembrete.update(l.id, { grupo_whatsapp_id: GRUPO_ID }))
-    ]);
+    await processChunks(contas, (c) =>
+      base44.asServiceRole.entities.ContaPagar.update(c.id, { grupo_whatsapp_id: GRUPO_ID })
+    );
+    console.log("ContaPagar atualizadas.");
 
-    console.log("Tudo atualizado!");
+    await processChunks(lembretes, (l) =>
+      base44.asServiceRole.entities.Lembrete.update(l.id, { grupo_whatsapp_id: GRUPO_ID })
+    );
+    console.log("Lembretes atualizados.");
 
     return Response.json({
       contasAtualizadas: contas.length,
       lembretesAtualizados: lembretes.length
     });
   } catch (err) {
-    console.error("ERRO:", err.message, err.stack);
+    console.error("ERRO:", err.message);
     return Response.json({ error: err.message }, { status: 500 });
   }
 });
