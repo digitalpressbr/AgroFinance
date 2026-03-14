@@ -221,6 +221,44 @@ _Lembrete automático - AgroFinance_`;
       }
     }
 
+    // Acumular totais por destino para envio de resumo
+    const totaisPorDestino = {};
+    for (const [, info] of Object.entries(resumoPorDestino)) {
+      const { destino, conta, deveEnviarNoDia, deveEnviarAntecipado } = info;
+      if (!totaisPorDestino[destino]) {
+        totaisPorDestino[destino] = { dia: { count: 0, total: 0 }, antecipado: { count: 0, total: 0 } };
+      }
+      if (deveEnviarNoDia) {
+        totaisPorDestino[destino].dia.count++;
+        totaisPorDestino[destino].dia.total += conta.valor || 0;
+      }
+      if (deveEnviarAntecipado) {
+        totaisPorDestino[destino].antecipado.count++;
+        totaisPorDestino[destino].antecipado.total += conta.valor || 0;
+      }
+    }
+
+    function formatarMoeda(valor) {
+      const partes = valor.toFixed(2).split('.');
+      partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      return partes.join(',');
+    }
+
+    for (const [destino, totais] of Object.entries(totaisPorDestino)) {
+      try {
+        if (totais.dia.count > 0) {
+          const msg = `📊 *RESUMO - CONTAS DO DIA*\n\n📌 Total de contas: ${totais.dia.count}\n💰 Valor total: R$ ${formatarMoeda(totais.dia.total)}\n\n_AgroFinance_`;
+          await enviarWhatsApp(destino, msg);
+        }
+        if (totais.antecipado.count > 0) {
+          const msg = `📊 *RESUMO - CONTAS PRÓXIMAS*\n\n📌 Total de contas: ${totais.antecipado.count}\n💰 Valor total: R$ ${formatarMoeda(totais.antecipado.total)}\n\n_AgroFinance_`;
+          await enviarWhatsApp(destino, msg);
+        }
+      } catch (error) {
+        console.error(`Erro ao enviar resumo para ${destino}:`, error);
+      }
+    }
+
     console.log(`Verificação concluída. ${lembretesEnviados} lembrete(s) enviado(s).`);
 
     return Response.json({
