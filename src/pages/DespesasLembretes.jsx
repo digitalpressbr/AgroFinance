@@ -995,8 +995,8 @@ ${valor}`
     return `${diasRestantes} dias`;
   };
 
-  const contasAtivas = contas.filter(c => !c.pago && c.ativo !== false);
-  const contasPagas = contas.filter(c => c.pago);
+  const contasAtivas = contas.filter(c => !c.pago && c.ativo !== false && !c.privado);
+  const contasPagas = contas.filter(c => c.pago && !c.privado);
   const lembretesAtivos = lembretes.filter(l => l.ativo !== false && !l.concluido);
   const lembretesConcluidos = lembretes.filter(l => l.concluido);
 
