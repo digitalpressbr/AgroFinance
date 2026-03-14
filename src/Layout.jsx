@@ -177,7 +177,9 @@ const navigationSections = [
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ totalProjetos: 0, emAnalise: 0 });
+  const logoClicksRef = useRef([]);
   const [swRegistration, setSwRegistration] = useState(null);
   const [isCheckingForUpdate, setIsCheckingForUpdate] = useState(false);
   const [updateCheckStatus, setUpdateCheckStatus] = useState('');
