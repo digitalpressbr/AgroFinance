@@ -425,6 +425,9 @@ export default function DespesasPrivadas() {
           <p className="text-gray-500 text-sm mt-1">{contas.length} despesa(s) privada(s)</p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={() => setShowGerenciarPix(true)} variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+            <CreditCard className="w-4 h-4 mr-2" /> Chaves PIX
+          </Button>
           <Button onClick={handleVerGruposWhatsApp} variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
             👥 Ver Grupos WhatsApp
           </Button>
