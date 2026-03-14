@@ -61,6 +61,11 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/despesas-privadas" element={
+        <LayoutWrapper currentPageName="Despesas Privadas">
+          <DespesasPrivadas />
+        </LayoutWrapper>
+      } />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
