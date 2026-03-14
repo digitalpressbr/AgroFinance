@@ -113,6 +113,9 @@ export default function DespesasPrivadas() {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState(formInicial);
   const [dialogExcluir, setDialogExcluir] = useState(null);
+  const [showGruposWhatsApp, setShowGruposWhatsApp] = useState(false);
+  const [gruposWhatsApp, setGruposWhatsApp] = useState([]);
+  const [carregandoGrupos, setCarregandoGrupos] = useState(false);
 
   useEffect(() => {
     if (autenticado) carregarDados();
