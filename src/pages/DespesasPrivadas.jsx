@@ -433,6 +433,40 @@ export default function DespesasPrivadas() {
         </Card>
       )}
 
+      <AlertDialog open={showGruposWhatsApp} onOpenChange={(open) => !open && setShowGruposWhatsApp(false)}>
+        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle>👥 Grupos do WhatsApp Disponíveis</AlertDialogTitle>
+            <AlertDialogDescription>IDs dos grupos para usar nas configurações</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-3">
+            {carregandoGrupos ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                <p className="text-sm text-gray-500 mt-2">Carregando grupos...</p>
+              </div>
+            ) : gruposWhatsApp.length === 0 ? (
+              <p className="text-center py-8 text-gray-500">Nenhum grupo encontrado</p>
+            ) : (
+              gruposWhatsApp.map((grupo) => (
+                <div key={grupo.id} className="border rounded-lg p-4 hover:bg-gray-50 flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{grupo.subject}</h3>
+                    <p className="text-xs text-gray-500 mt-1 font-mono break-all">{grupo.id}</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(grupo.id); toast.success("ID copiado!"); }} className="shrink-0">
+                    <Copy className="w-3 h-3 mr-1" /> Copiar ID
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Fechar</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={!!dialogExcluir} onOpenChange={open => !open && setDialogExcluir(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
