@@ -374,7 +374,37 @@ export default function DespesasPrivadas() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Chave PIX</Label>
-                  <Input value={formData.chave_pix} onChange={e => setFormData(f => ({ ...f, chave_pix: e.target.value }))} placeholder="Chave PIX" />
+                  {chavesPix.length > 0 ? (
+                    <Select
+                      value={formData.chave_pix || ""}
+                      onValueChange={(value) => setFormData(f => ({ ...f, chave_pix: value === "__none__" ? "" : value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma chave PIX">
+                          {formData.chave_pix && (
+                            <span className="font-mono text-sm">
+                              {chavesPix.find(c => c.chave === formData.chave_pix)?.descricao
+                                ? `${chavesPix.find(c => c.chave === formData.chave_pix)?.descricao} - ${formData.chave_pix}`
+                                : formData.chave_pix}
+                            </span>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Nenhuma</SelectItem>
+                        {chavesPix.map((chave) => (
+                          <SelectItem key={chave.id} value={chave.chave}>
+                            <div className="flex flex-col py-1">
+                              {chave.descricao && <span className="font-medium text-sm">{chave.descricao}</span>}
+                              <span className="font-mono text-xs text-gray-600">{chave.chave}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input value={formData.chave_pix} onChange={e => setFormData(f => ({ ...f, chave_pix: e.target.value }))} placeholder="Chave PIX (cadastre chaves no botão acima)" />
+                  )}
                 </div>
                 <div>
                   <Label>Código de Barras</Label>
