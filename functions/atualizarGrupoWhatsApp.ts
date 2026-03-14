@@ -4,23 +4,19 @@ Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
   const GRUPO_ID = "120363424659062662@g.us";
 
-  console.log("Iniciando listagem de ContaPagar...");
-  const contas = await base44.asServiceRole.entities.ContaPagar.list();
-  console.log(`ContaPagar encontradas: ${contas.length}`);
+  const [contas, lembretes] = await Promise.all([
+    base44.asServiceRole.entities.ContaPagar.list(),
+    base44.asServiceRole.entities.Lembrete.list()
+  ]);
 
-  for (const conta of contas) {
-    await base44.asServiceRole.entities.ContaPagar.update(conta.id, { grupo_whatsapp_id: GRUPO_ID });
-  }
-  console.log("ContaPagar atualizadas.");
+  console.log(`ContaPagar: ${contas.length}, Lembretes: ${lembretes.length}`);
 
-  console.log("Iniciando listagem de Lembrete...");
-  const lembretes = await base44.asServiceRole.entities.Lembrete.list();
-  console.log(`Lembretes encontrados: ${lembretes.length}`);
+  await Promise.all([
+    ...contas.map(c => base44.asServiceRole.entities.ContaPagar.update(c.id, { grupo_whatsapp_id: GRUPO_ID })),
+    ...lembretes.map(l => base44.asServiceRole.entities.Lembrete.update(l.id, { grupo_whatsapp_id: GRUPO_ID }))
+  ]);
 
-  for (const lembrete of lembretes) {
-    await base44.asServiceRole.entities.Lembrete.update(lembrete.id, { grupo_whatsapp_id: GRUPO_ID });
-  }
-  console.log("Lembretes atualizados.");
+  console.log("Tudo atualizado!");
 
   return Response.json({
     contasAtualizadas: contas.length,
