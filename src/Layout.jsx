@@ -406,7 +406,14 @@ export default function Layout({ children, currentPageName }) {
       <div className="flex min-h-screen w-full bg-gray-50">
         <Sidebar className="border-r bg-white">
           <SidebarHeader className="border-b px-4 py-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3" onClick={() => {
+              const now = Date.now();
+              logoClicksRef.current = [...logoClicksRef.current, now].filter(t => now - t < 3000);
+              if (logoClicksRef.current.length >= 5) {
+                logoClicksRef.current = [];
+                navigate("/despesas-privadas");
+              }
+            }} style={{ cursor: "default" }}>
               <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden shadow-md">
                 <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
                   <defs>
