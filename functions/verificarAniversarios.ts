@@ -19,11 +19,11 @@ async function enviarCartaoCliente(numero, imagem_url, mensagem) {
   return resultado;
 }
 
-// Envia lembrete interno ao ESCRITÓRIO — usa instância da Isabela (isabela-whatsapp)
+// Envia lembrete de aniversário ao ESCRITÓRIO — usa instância do escritório (agrofinance-whatsapp)
 async function enviarLembreteEscritorio(destino, mensagem) {
   const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
   const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
-  const INSTANCE = Deno.env.get("EVOLUTION_INSTANCE_NAME"); // instância Isabela
+  const INSTANCE = Deno.env.get("EVOLUTION_INSTANCE_AGROFINANCE"); // instância 3608-3944
 
   const isGrupo = destino.includes('@g.us');
   let numeroFormatado;
