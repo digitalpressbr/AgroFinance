@@ -58,17 +58,19 @@ Deno.serve(async (req) => {
     console.log(`[DIAGNÓSTICO] UTC: ${agora.toISOString()} | BRT: ${String(agoraBrasilia.getHours()).padStart(2,'0')}:${String(agoraBrasilia.getMinutes()).padStart(2,'0')}`);
     console.log(`Verificando aniversários do dia ${diaHoje}/${mesHoje}`);
     
-    // Buscar todos os clientes com lembrete ativo
-    const clientes = await base44.asServiceRole.entities.Cliente.list();
+    // Buscar clientes com lembrete ativo e data de nascimento preenchida
+    const clientes = await base44.asServiceRole.entities.Cliente.filter(
+      { enviar_lembrete_aniversario: true },
+      'nome',
+      200
+    );
+    
+    // Filtrar em memória pelo dia/mês de hoje
     const clientesAniversariantes = clientes.filter(cliente => {
-      if (!cliente.enviar_lembrete_aniversario || !cliente.data_nascimento) {
-        return false;
-      }
-      
+      if (!cliente.data_nascimento) return false;
       const dataNasc = new Date(cliente.data_nascimento + 'T00:00:00');
       const diaNasc = String(dataNasc.getDate()).padStart(2, '0');
       const mesNasc = String(dataNasc.getMonth() + 1).padStart(2, '0');
-      
       return diaNasc === diaHoje && mesNasc === mesHoje;
     });
     
