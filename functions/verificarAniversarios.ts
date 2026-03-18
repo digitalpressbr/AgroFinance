@@ -1,31 +1,40 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-async function enviarWhatsApp(numero, mensagem, imagem_url) {
+// Envia cartão de aniversário ao CLIENTE — usa instância do escritório (3608-3944 / agrofinance-whatsapp)
+async function enviarCartaoCliente(numero, imagem_url, mensagem) {
   const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
   const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
-  const EVOLUTION_INSTANCE_NAME = Deno.env.get("EVOLUTION_INSTANCE_NAME");
+  const INSTANCE = Deno.env.get("EVOLUTION_INSTANCE_AGROFINANCE"); // instância 3608-3944
 
-  const isGrupo = numero.includes('@g.us');
+  const numeroLimpo = numero.replace(/\D/g, '');
+  const numeroFormatado = numeroLimpo.length === 11 ? `55${numeroLimpo}` : numeroLimpo;
+
+  const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${INSTANCE}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
+    body: JSON.stringify({ number: numeroFormatado, mediatype: 'image', media: imagem_url, caption: mensagem || '' })
+  });
+  const resultado = await response.json();
+  if (!response.ok) throw new Error(`Evolution API error: ${JSON.stringify(resultado)}`);
+  return resultado;
+}
+
+// Envia lembrete interno ao ESCRITÓRIO — usa instância da Isabela (isabela-whatsapp)
+async function enviarLembreteEscritorio(destino, mensagem) {
+  const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
+  const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
+  const INSTANCE = Deno.env.get("EVOLUTION_INSTANCE_NAME"); // instância Isabela
+
+  const isGrupo = destino.includes('@g.us');
   let numeroFormatado;
   if (isGrupo) {
-    numeroFormatado = numero;
+    numeroFormatado = destino;
   } else {
-    const numeroLimpo = numero.replace(/\D/g, '');
+    const numeroLimpo = destino.replace(/\D/g, '');
     numeroFormatado = numeroLimpo.length === 11 ? `55${numeroLimpo}` : numeroLimpo;
   }
 
-  if (imagem_url) {
-    const response = await fetch(`${EVOLUTION_API_URL}/message/sendMedia/${EVOLUTION_INSTANCE_NAME}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
-      body: JSON.stringify({ number: numeroFormatado, mediatype: 'image', media: imagem_url, caption: mensagem || '' })
-    });
-    const resultado = await response.json();
-    if (!response.ok) throw new Error(`Evolution API error: ${JSON.stringify(resultado)}`);
-    return resultado;
-  }
-
-  const response = await fetch(`${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE_NAME}`, {
+  const response = await fetch(`${EVOLUTION_API_URL}/message/sendText/${INSTANCE}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
     body: JSON.stringify({ number: numeroFormatado, text: mensagem })
