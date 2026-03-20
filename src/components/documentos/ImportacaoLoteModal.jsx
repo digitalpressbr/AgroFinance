@@ -242,7 +242,7 @@ CAMPOS A EXTRAIR:
           <div className="space-y-4 py-2">
             <label
               className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-gray-300 rounded-xl p-10 cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all"
-              onClick={() => inputRef.current?.click()}
+
             >
               <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
                 <Upload className="w-7 h-7 text-green-600" />
