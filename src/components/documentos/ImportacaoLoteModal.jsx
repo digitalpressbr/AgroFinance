@@ -195,12 +195,21 @@ CAMPOS A EXTRAIR:
         const cliente_id = matchCliente(clientes, resultado?.nome_cliente);
         const imovel_id = matchImovel(imoveis, resultado?.matricula_numero, cliente_id);
 
+        const tipo = resultado?.tipo_documento || "";
+        const nomeSugerido = gerarNomeSugerido(
+          tipo,
+          resultado?.matricula_numero,
+          resultado?.data_emissao,
+          resultado?.data_vencimento,
+          resultado?.exercicio
+        ) || resultado?.nome_sugerido || arq.nome.replace('.pdf', '');
+
         setArquivos(prev => prev.map(a => a.id === arq.id ? {
           ...a,
           status: STATUS.CONCLUIDO,
           arquivo_pdf: file_url,
-          nome_documento: resultado?.nome_sugerido || arq.nome.replace('.pdf', ''),
-          tipo_documento: resultado?.tipo_documento || "",
+          nome_documento: nomeSugerido,
+          tipo_documento: tipo,
           data_emissao: resultado?.data_emissao || "",
           data_vencimento: resultado?.data_vencimento || "",
           data_inicio_contrato: resultado?.data_inicio_contrato || "",
