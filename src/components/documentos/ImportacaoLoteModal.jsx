@@ -28,6 +28,37 @@ function calcularStatus(data_vencimento) {
   return dias < 0 ? "Vencido" : dias <= 30 ? "Vencendo" : "Vigente";
 }
 
+function detectarTipoDocumento(nomeArquivo, nomeSugerido, observacoes) {
+  const textos = [nomeArquivo || "", nomeSugerido || "", observacoes || ""]
+    .join(" ")
+    .toLowerCase();
+
+  if ((textos.includes("cnd") && textos.includes("itr")) ||
+      (textos.includes("certidão negativa") && textos.includes("itr")) ||
+      textos.includes("imposto territorial rural")) return "ITR";
+
+  if (textos.includes("ccir") || textos.includes("certificado de cadastro de imóvel rural") ||
+      textos.includes("certificado de cadastro de imovel rural")) return "CCIR";
+
+  if (textos.includes("cib") || textos.includes("cadastro imobiliário brasileiro") ||
+      textos.includes("cadastro imobiliario brasileiro") || textos.includes("nirf")) return "CIB";
+
+  if (textos.includes("car") && textos.includes("recibo")) return "CAR - Recibo";
+  if (textos.includes("car") && textos.includes("demonstrativo")) return "CAR - Demonstrativo";
+
+  if (textos.includes("contrato") && textos.includes("arrendamento")) return "Contrato de Arrendamento";
+  if (textos.includes("aditivo")) return "Aditivo";
+  if (textos.includes("carta") && textos.includes("anuência")) return "Carta de Anuência";
+  if (textos.includes("laudo")) return "Laudo Técnico";
+  if (textos.includes("art")) return "ART";
+
+  if (textos.includes("inteiro teor") ||
+      (textos.includes("certidão") && textos.includes("matrícula")) ||
+      textos.includes("inexig") || textos.includes("inexigibilidade") || textos.includes("semad")) return "Certidão";
+
+  return "Certidão";
+}
+
 function matchCliente(clientes, nomeCliente) {
   if (!nomeCliente) return "";
   const norm = nomeCliente.toLowerCase().trim();
