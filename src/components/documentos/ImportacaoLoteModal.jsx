@@ -18,7 +18,7 @@ const STATUS = { PENDENTE: "pendente", PROCESSANDO: "processando", CONCLUIDO: "c
 const TIPOS_DOCUMENTO = [
   "Certidão", "CCIR", "CIB", "ITR", "CAR - Recibo", "CAR - Demonstrativo",
   "Contrato de Arrendamento", "Aditivo", "Carta de Anuência", "Laudo Técnico",
-  "ART", "Validação de Assinatura", "Outro"
+  "ART", "Validação de Assinatura", "Ambiental", "Outro"
 ];
 
 function calcularStatus(data_vencimento) {
@@ -52,9 +52,13 @@ function detectarTipoDocumento(nomeArquivo, nomeSugerido, observacoes) {
   if (textos.includes("laudo")) return "Laudo Técnico";
   if (textos.includes("art")) return "ART";
 
+  if (textos.includes("inexig") || textos.includes("inexigibilidade") ||
+      textos.includes("ambiental") || textos.includes("semad") ||
+      textos.includes("apf") || textos.includes("licenciamento ambiental") ||
+      textos.includes("titulo ambiental") || textos.includes("título ambiental")) return "Ambiental";
+
   if (textos.includes("inteiro teor") ||
-      (textos.includes("certidão") && textos.includes("matrícula")) ||
-      textos.includes("inexig") || textos.includes("inexigibilidade") || textos.includes("semad")) return "Certidão";
+      (textos.includes("certidão") && textos.includes("matrícula"))) return "Certidão";
 
   return "Certidão";
 }
@@ -104,8 +108,11 @@ function gerarNomeSugerido(tipo, matricula, dataEmissao, dataVencimento, exercic
       else if (textoContrato.includes("aditivo")) subtipoContrato = "Aditivo";
       return dataDoc ? `Contrato ${subtipoContrato} ${m}-${dataDoc}` : `Contrato ${subtipoContrato} ${m}`;
     }
-    case "Validação de Assinatura":
-      return dataDoc ? `Inexig. Ambiental ${m}` : `Inexig. Ambiental ${m}`;
+    case "Ambiental": {
+      const textoAmbiental = (nomeArquivoOriginal || "").toLowerCase();
+      const prefixo = textoAmbiental.includes("apf") ? "APF" : "Inexig. Ambiental";
+      return `${prefixo} ${m}`;
+    }
     default:
       return null;
   }
