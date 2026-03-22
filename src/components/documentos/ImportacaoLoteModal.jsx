@@ -227,7 +227,7 @@ CAMPOS A EXTRAIR:
         const cliente_id = matchCliente(clientes, resultado?.nome_cliente);
         const imovel_id = matchImovel(imoveis, resultado?.matricula_numero, cliente_id);
 
-        const tipo = resultado?.tipo_documento || "";
+        const tipo = detectarTipoDocumento(arq.nome, resultado?.nome_sugerido, resultado?.resumo) || resultado?.tipo_documento || "";
         const nomeSugerido = gerarNomeSugerido(
           tipo,
           resultado?.matricula_numero,
