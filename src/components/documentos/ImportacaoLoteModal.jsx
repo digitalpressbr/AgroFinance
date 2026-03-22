@@ -10,6 +10,7 @@ import { differenceInDays } from "date-fns";
 import {
   Upload, Loader2, CheckCircle2, XCircle, Clock, Trash2, Sparkles, Save, FileText
 } from "lucide-react";
+import { labelImovel } from "@/lib/formatImovel";
 
 const STATUS = { PENDENTE: "pendente", PROCESSANDO: "processando", CONCLUIDO: "concluido", ERRO: "erro" };
 
