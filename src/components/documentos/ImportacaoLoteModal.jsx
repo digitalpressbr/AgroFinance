@@ -307,6 +307,27 @@ CAMPOS A EXTRAIR:
   };
 
   const atualizarCampo = (id, campo, valor) => {
+    if (campo === 'cliente_id') {
+      setArquivos(prev => {
+        // Verifica se é o primeiro doc a ter cliente definido (nenhum outro tem cliente ainda)
+        const outrosTemCliente = prev.some(a => a.id !== id && a.cliente_id);
+        if (!outrosTemCliente && valor) {
+          // Propaga o cliente para todos que não têm cliente
+          // Tenta também propagar o imóvel se houver apenas um imóvel desse cliente
+          const imoveisDoCliente = imoveis.filter(i => i.cliente_id === valor && i.nome_imovel);
+          const imovelUnico = imoveisDoCliente.length === 1 ? imoveisDoCliente[0].id : null;
+          return prev.map(a => {
+            if (a.id === id) return { ...a, cliente_id: valor };
+            if (!a.cliente_id) {
+              return { ...a, cliente_id: valor, ...(imovelUnico && !a.imovel_id ? { imovel_id: imovelUnico } : {}) };
+            }
+            return a;
+          });
+        }
+        return prev.map(a => a.id === id ? { ...a, cliente_id: valor } : a);
+      });
+      return;
+    }
     setArquivos(prev => prev.map(a => a.id === id ? { ...a, [campo]: valor } : a));
   };
 
