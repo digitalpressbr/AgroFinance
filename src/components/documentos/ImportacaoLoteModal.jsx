@@ -134,6 +134,16 @@ function gerarNomeSugerido(tipo, matricula, dataEmissao, dataVencimento, exercic
   }
 }
 
+function calcularVencimentoCCIR(nomeArquivo, nomeSugerido, exercicioIA) {
+  // Tenta extrair o ano do exercício de: exercicioIA, nome sugerido ou nome do arquivo
+  const textos = [exercicioIA || "", nomeSugerido || "", nomeArquivo || ""].join(" ");
+  const match = textos.match(/[Ee]x\.?\s*(\d{4})/) || textos.match(/CCIR[^\d]*(\d{4})/i) || textos.match(/(\d{4})/);
+  if (!match) return null;
+  const ano = parseInt(match[1]);
+  if (ano < 2000 || ano > 2100) return null;
+  return `${ano + 1}-09-30`;
+}
+
 function matchImovel(imoveis, matriculaNume, clienteId) {
   if (!matriculaNume) return "";
   const matriculaNorm = String(matriculaNume).replace(/\D/g, '');
