@@ -251,7 +251,10 @@ CAMPOS A EXTRAIR:
           resultado?.matricula_numero,
           resultado?.data_emissao,
           resultado?.data_vencimento,
-          resultado?.exercicio
+          resultado?.exercicio,
+          arq.nome,
+          resultado?.nome_sugerido,
+          resultado?.resumo
         ) || resultado?.nome_sugerido || arq.nome.replace('.pdf', '');
 
         setArquivos(prev => prev.map(a => a.id === arq.id ? {
