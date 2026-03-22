@@ -52,6 +52,11 @@ function detectarTipoDocumento(nomeArquivo, nomeSugerido, observacoes) {
   if (textos.includes("laudo")) return "Laudo Técnico";
   if (textos.includes("art")) return "ART";
 
+  // Validação de assinatura tem prioridade antes de Ambiental
+  if (textos.includes("validação") || textos.includes("validacao") ||
+      textos.includes("assinatura digital") || textos.includes("certificado digital") ||
+      textos.includes("icp-brasil")) return "Validação de Assinatura";
+
   if (textos.includes("inexig") || textos.includes("inexigibilidade") ||
       textos.includes("ambiental") || textos.includes("semad") ||
       textos.includes("apf") || textos.includes("licenciamento ambiental") ||
@@ -107,6 +112,17 @@ function gerarNomeSugerido(tipo, matricula, dataEmissao, dataVencimento, exercic
       else if (textoContrato.includes("parceria")) subtipoContrato = "Parceria";
       else if (textoContrato.includes("aditivo")) subtipoContrato = "Aditivo";
       return dataDoc ? `Contrato ${subtipoContrato} ${m}-${dataDoc}` : `Contrato ${subtipoContrato} ${m}`;
+    }
+    case "Validação de Assinatura": {
+      const textoVal = (nomeArquivoOriginal || "").toLowerCase();
+      let subtipoVal = null;
+      if (textoVal.includes("comodato")) subtipoVal = "Comodato";
+      else if (textoVal.includes("parceria")) subtipoVal = "Parceria";
+      else if (textoVal.includes("arrendamento")) subtipoVal = "Arrendamento";
+      if (subtipoVal && m) return `Validação - Contrato ${subtipoVal} ${m}`;
+      // fallback: usa nome do arquivo sem extensão
+      const nomeBase = (nomeArquivoOriginal || "Documento").replace(/\.pdf$/i, "");
+      return m ? `${nomeBase} ${m}` : nomeBase;
     }
     case "Ambiental": {
       const textoAmbiental = (nomeArquivoOriginal || "").toLowerCase();
