@@ -80,15 +80,14 @@ Deno.serve(async (req) => {
 
         const diasRestantes = Math.floor((dataVencimento - hoje) / (1000 * 60 * 60 * 24));
 
-        // Verificar se deve enviar o lembrete antecipado
-        const deveEnviarAntecipado = 
-          diasRestantes === conta.dias_antes_avisar && 
-          !conta.lembrete_antecipado_enviado;
-
-        // Verificar se deve enviar o lembrete no dia
-        const deveEnviarNoDia = 
+        // Só processa o tipo correspondente ao horário atual — evita duplicação entre execuções
+        const deveEnviarNoDia = modoNoDia &&
           diasRestantes === 0 && 
           !conta.lembrete_enviado;
+
+        const deveEnviarAntecipado = modoAntecipado &&
+          diasRestantes === conta.dias_antes_avisar && 
+          !conta.lembrete_antecipado_enviado;
 
         if (!deveEnviarAntecipado && !deveEnviarNoDia) {
           continue;
