@@ -176,10 +176,7 @@ _Lembrete automático - AgroFinance_`;
         await enviarWhatsApp(destino, mensagem);
 
         // Criar próxima parcela para contas recorrentes
-        const updateDataFinal = {};
         if (deveEnviarNoDia) {
-          
-          // Se for conta recorrente e foi enviado no dia, criar a próxima parcela
           if (conta.recorrente && conta.parcela_atual < conta.parcelas_total) {
             const proximaData = new Date(conta.data_vencimento + 'T00:00:00');
             proximaData.setMonth(proximaData.getMonth() + 1);
