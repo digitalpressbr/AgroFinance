@@ -221,7 +221,7 @@ export default function Vencimentos() {
 
       const linha = [
         index + 1,
-        `"${projeto.nome_cliente}"`,
+        `"${abreviarNome(projeto.nome_cliente)}"`,
         `"${projeto.item_financiado || 'N/A'}"`,
         projeto.numero_contrato || 'N/A',
         parcela.numero_parcela,
@@ -247,6 +247,13 @@ export default function Vencimentos() {
     link.download = nomeArquivo;
     link.click();
     URL.revokeObjectURL(link.href);
+  };
+
+  const abreviarNome = (nomeCompleto) => {
+    if (!nomeCompleto) return '';
+    const partes = nomeCompleto.trim().split(/\s+/);
+    if (partes.length <= 1) return partes[0] || '';
+    return `${partes[0]} ${partes[1].charAt(0)}.`;
   };
 
   const getMonthName = (month) => {
@@ -540,7 +547,7 @@ export default function Vencimentos() {
                     ${page.data.map((grupo, idx) => `
                       <tr>
                         <td class="col-num">${page.startIndex + idx + 1}</td>
-                        <td class="col-cliente">${grupo.cliente?.split(' ')[0] || ''}</td>
+                        <td class="col-cliente">${abreviarNome(grupo.cliente)}</td>
                         <td class="col-banco">${bancoNomes[grupo.banco] || grupo.banco || 'N/A'}</td>
                         <td class="col-projeto">${grupo.itemFinanciado || 'N/A'}</td>
                         <td class="col-contrato">${grupo.numeroContrato || 'N/A'}</td>
@@ -865,7 +872,7 @@ export default function Vencimentos() {
                         return `
                           <tr>
                             <td class="col-num">${page.startIndex + idx + 1}</td>
-                            <td class="col-cliente">${projeto?.nome_cliente?.split(' ')[0] || ''}</td>
+                            <td class="col-cliente">${abreviarNome(projeto?.nome_cliente)}</td>
                             <td class="col-banco">${bancoNomes[projeto?.banco] || projeto?.banco || 'N/A'}</td>
                             <td class="col-projeto">${projeto?.item_financiado || 'N/A'}</td>
                             <td class="col-contrato">${projeto?.numero_contrato || 'N/A'}</td>
