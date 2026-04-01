@@ -23,8 +23,10 @@ export default function ConexaoWhatsApp() {
     try {
       setCarregando(true);
       const response = await base44.functions.invoke('evolutionStatus', { acao: 'status' });
-      if (response.success) {
-        setInstancias(response.instancias);
+      console.log('Response evolutionStatus:', response);
+      const dados = response.data || response;
+      if (dados.success) {
+        setInstancias(dados.instancias);
       } else {
         toast.error("Erro ao consultar status");
       }
@@ -47,20 +49,22 @@ export default function ConexaoWhatsApp() {
         instancia: nomeInstancia 
       });
 
-      if (response.success && response.qrcode) {
-        setQrCode(response.qrcode);
+      const dadosQR = response.data || response;
+      if (dadosQR.success && dadosQR.qrcode) {
+        setQrCode(dadosQR.qrcode);
         // Polling a cada 5s para verificar se conectou
         if (intervaloRef.current) clearInterval(intervaloRef.current);
         intervaloRef.current = setInterval(async () => {
           const statusResp = await base44.functions.invoke('evolutionStatus', { acao: 'status' });
-          if (statusResp.success) {
-            const inst = statusResp.instancias.find(i => i.nome === nomeInstancia);
+          const dadosStatus = statusResp.data || statusResp;
+          if (dadosStatus.success) {
+            const inst = dadosStatus.instancias.find(i => i.nome === nomeInstancia);
             if (inst && inst.status === 'open') {
               clearInterval(intervaloRef.current);
               intervaloRef.current = null;
               setQrCode(null);
               setInstanciaQR(null);
-              setInstancias(statusResp.instancias);
+              setInstancias(dadosStatus.instancias);
               toast.success(`${nomeInstancia} conectada`);
             }
           }
@@ -68,6 +72,7 @@ export default function ConexaoWhatsApp() {
       } else {
         toast.error("Não foi possível gerar o QR Code");
         setInstanciaQR(null);
+        console.log('Resposta conectar:', dadosQR);
       }
     } catch (error) {
       console.error("Erro QR:", error);
@@ -86,7 +91,8 @@ export default function ConexaoWhatsApp() {
         acao: 'desconectar', 
         instancia: nomeInstancia 
       });
-      if (response.success) {
+      const dados = response.data || response;
+      if (dados.success) {
         toast.success("Desconectada");
         carregarStatus();
       } else {
@@ -106,7 +112,8 @@ export default function ConexaoWhatsApp() {
         acao: 'reiniciar', 
         instancia: nomeInstancia 
       });
-      if (response.success) {
+      const dados = response.data || response;
+      if (dados.success) {
         toast.success("Reiniciada");
         setTimeout(carregarStatus, 2000);
       } else {
