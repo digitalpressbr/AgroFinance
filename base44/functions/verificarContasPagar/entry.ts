@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
         // Determinar o destino (grupo ou telefone individual, com fallback para grupo padrão)
         const destinoRaw = (conta.grupo_whatsapp_id || '').trim() || (conta.telefone_contato || '').trim();
         const destino = destinoRaw || GRUPO_PADRAO;
-        console.log(`[CONTA] "${conta.descricao}" | dias: ${diasRestantes} | destino: ${destino} | noDia: ${deveEnviarNoDia} | antecipado: ${deveEnviarAntecipado}`);
+        console.log(`[CONTA] "${conta.descricao}" | ID: ${conta.id} | privado: ${conta.privado || false} | dias: ${diasRestantes} | noDia: ${deveEnviarNoDia} | antecipado: ${deveEnviarAntecipado}`);
         
         // Criar chave única para evitar duplicação: destino + ID da conta
         const chaveUnica = `${destino}_${conta.id}`;
