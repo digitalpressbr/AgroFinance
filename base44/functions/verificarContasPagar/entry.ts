@@ -276,11 +276,11 @@ _Lembrete automático - AgroFinance_`;
 
     for (const [destino, totais] of Object.entries(totaisPorDestino)) {
       try {
-        if (totais.dia.count > 0) {
+        if (totais.dia.count > 1) {
           const msg = `📊 *RESUMO - CONTAS DO DIA*\n\n📌 Total de contas: ${totais.dia.count}\n💰 Valor total: R$ ${formatarMoeda(totais.dia.total)}\n\n_AgroFinance_`;
           await enviarWhatsApp(destino, msg);
         }
-        if (totais.antecipado.count > 0) {
+        if (totais.antecipado.count > 1) {
           const msg = `📊 *RESUMO - CONTAS PRÓXIMAS*\n\n📌 Total de contas: ${totais.antecipado.count}\n💰 Valor total: R$ ${formatarMoeda(totais.antecipado.total)}\n\n_AgroFinance_`;
           await enviarWhatsApp(destino, msg);
         }
