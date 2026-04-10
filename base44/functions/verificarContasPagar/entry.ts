@@ -180,7 +180,18 @@ ${conta.codigo_barras && !conta.recorrente ? `\n🔢 *Código de Barras:*\n\`${c
 _Lembrete automático - AgroFinance_`;
         }
 
-        // Marcar como enviado ANTES de enviar a mensagem (evita duplicação em execuções paralelas)
+        // Re-ler a conta do banco para evitar race condition (dupla execução simultânea)
+        const contaAtual = await base44.asServiceRole.entities.ContaPagar.get(conta.id);
+        if (deveEnviarNoDia && contaAtual.lembrete_enviado) {
+          console.log(`[SKIP] ${conta.descricao} - lembrete_enviado já setado por outra execução`);
+          continue;
+        }
+        if (deveEnviarAntecipado && contaAtual.lembrete_antecipado_enviado) {
+          console.log(`[SKIP] ${conta.descricao} - lembrete_antecipado_enviado já setado por outra execução`);
+          continue;
+        }
+
+        // Marcar como enviado ANTES de enviar a mensagem
         const updateData = {};
         if (deveEnviarNoDia) {
           updateData.lembrete_enviado = true;
