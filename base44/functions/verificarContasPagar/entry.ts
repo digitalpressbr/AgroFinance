@@ -146,10 +146,43 @@ Deno.serve(async (req) => {
     }
 
     // Agora enviar todas as mensagens acumuladas
+    const totaisPorDestino = {};
     for (const [chaveUnica, info] of Object.entries(resumoPorDestino)) {
       try {
         const { conta, destino, deveEnviarNoDia, deveEnviarAntecipado, dataFormatada, valorFormatado } = info;
+
+        // === PROTEÇÃO ANTI-DUPLICAÇÃO ATÔMICA ===
+        // Re-ler a conta AGORA para pegar o estado mais recente do banco
+        const contaAtual = await base44.asServiceRole.entities.ContaPagar.get(conta.id);
         
+        // Se os flags já foram marcados por outra execução paralela, pular
+        if (deveEnviarNoDia && contaAtual.lembrete_enviado) {
+          console.log(`[SKIP-RACE] ${conta.descricao} (${conta.id}) - lembrete_enviado já setado`);
+          continue;
+        }
+        if (deveEnviarAntecipado && contaAtual.lembrete_antecipado_enviado) {
+          console.log(`[SKIP-RACE] ${conta.descricao} (${conta.id}) - lembrete_antecipado_enviado já setado`);
+          continue;
+        }
+
+        // Marcar como enviado IMEDIATAMENTE antes de qualquer outra operação
+        const updateData = {};
+        if (deveEnviarNoDia) updateData.lembrete_enviado = true;
+        if (deveEnviarAntecipado) updateData.lembrete_antecipado_enviado = true;
+        await base44.asServiceRole.entities.ContaPagar.update(conta.id, updateData);
+
+        // Re-verificar após o update para garantir que fomos nós que gravamos primeiro
+        const contaAposUpdate = await base44.asServiceRole.entities.ContaPagar.get(conta.id);
+        if (deveEnviarNoDia && !contaAposUpdate.lembrete_enviado) {
+          console.log(`[SKIP-RACE2] ${conta.descricao} - update não refletido, outra execução ganhou`);
+          continue;
+        }
+        if (deveEnviarAntecipado && !contaAposUpdate.lembrete_antecipado_enviado) {
+          console.log(`[SKIP-RACE2] ${conta.descricao} - update não refletido, outra execução ganhou`);
+          continue;
+        }
+        // =========================================
+
         let mensagem;
         const recorrenteInfo = conta.recorrente ? `💳 *Parcela ${conta.parcela_atual}/${conta.parcelas_total}*\n` : '';
         
@@ -179,27 +212,6 @@ ${conta.observacoes ? `📝 ${conta.observacoes}\n` : ''}
 ${conta.codigo_barras && !conta.recorrente ? `\n🔢 *Código de Barras:*\n\`${conta.codigo_barras}\`\n` : ''}${conta.chave_pix ? `\n💳 *PIX para pagamento:*\n${conta.chave_pix}\n` : ''}
 _Lembrete automático - AgroFinance_`;
         }
-
-        // Re-ler a conta do banco para evitar race condition (dupla execução simultânea)
-        const contaAtual = await base44.asServiceRole.entities.ContaPagar.get(conta.id);
-        if (deveEnviarNoDia && contaAtual.lembrete_enviado) {
-          console.log(`[SKIP] ${conta.descricao} - lembrete_enviado já setado por outra execução`);
-          continue;
-        }
-        if (deveEnviarAntecipado && contaAtual.lembrete_antecipado_enviado) {
-          console.log(`[SKIP] ${conta.descricao} - lembrete_antecipado_enviado já setado por outra execução`);
-          continue;
-        }
-
-        // Marcar como enviado ANTES de enviar a mensagem
-        const updateData = {};
-        if (deveEnviarNoDia) {
-          updateData.lembrete_enviado = true;
-        }
-        if (deveEnviarAntecipado) {
-          updateData.lembrete_antecipado_enviado = true;
-        }
-        await base44.asServiceRole.entities.ContaPagar.update(conta.id, updateData);
 
         await enviarWhatsApp(destino, mensagem);
 
@@ -250,6 +262,19 @@ _Lembrete automático - AgroFinance_`;
             }
           }
         }
+        // Acumular totais apenas para o que foi realmente enviado
+        if (!totaisPorDestino[destino]) {
+          totaisPorDestino[destino] = { dia: { count: 0, total: 0 }, antecipado: { count: 0, total: 0 } };
+        }
+        if (deveEnviarNoDia) {
+          totaisPorDestino[destino].dia.count++;
+          totaisPorDestino[destino].dia.total += conta.valor || 0;
+        }
+        if (deveEnviarAntecipado) {
+          totaisPorDestino[destino].antecipado.count++;
+          totaisPorDestino[destino].antecipado.total += conta.valor || 0;
+        }
+
         lembretesEnviados++;
         console.log(`Lembrete enviado: ${conta.descricao} (tipo: ${deveEnviarNoDia ? 'DIA' : 'ANTECIPADO'})`);
 
@@ -259,23 +284,6 @@ _Lembrete automático - AgroFinance_`;
           erro: error.message
         });
         console.error(`Erro ao processar conta ${info.conta.descricao}:`, error);
-      }
-    }
-
-    // Acumular totais por destino para envio de resumo
-    const totaisPorDestino = {};
-    for (const [, info] of Object.entries(resumoPorDestino)) {
-      const { destino, conta, deveEnviarNoDia, deveEnviarAntecipado } = info;
-      if (!totaisPorDestino[destino]) {
-        totaisPorDestino[destino] = { dia: { count: 0, total: 0 }, antecipado: { count: 0, total: 0 } };
-      }
-      if (deveEnviarNoDia) {
-        totaisPorDestino[destino].dia.count++;
-        totaisPorDestino[destino].dia.total += conta.valor || 0;
-      }
-      if (deveEnviarAntecipado) {
-        totaisPorDestino[destino].antecipado.count++;
-        totaisPorDestino[destino].antecipado.total += conta.valor || 0;
       }
     }
 
