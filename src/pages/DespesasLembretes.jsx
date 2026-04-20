@@ -645,7 +645,7 @@ ${valor}`
     }
   };
 
-  const executarSalvarConta = async (dadosSalvar) => {
+  const executarSalvarConta = async (dadosSalvar, alertarDuplicidade = false) => {
     try {
       if (dadosSalvar.editingId) {
         await base44.entities.ContaPagar.update(dadosSalvar.editingId, dadosSalvar.dados);
@@ -657,6 +657,21 @@ ${valor}`
         await base44.entities.ContaPagar.create(dadosSalvar.dados);
         toast.success("Conta cadastrada com sucesso!");
       }
+
+      // Enviar alerta de duplicidade no WhatsApp se necessário
+      if (alertarDuplicidade) {
+        const GRUPO_PADRAO = "120363424659062662@g.us";
+        const dados = dadosSalvar.dados;
+        const dataVenc = dados.data_vencimento ? new Date(dados.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '?';
+        const valorNovo = dados.valor?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || 'R$ ?';
+        const msg = `⚠️ *ALERTA - CONTA POSSIVELMENTE DUPLICADA*\n\n📋 *${dados.descricao}*\n📅 *Vencimento:* ${dataVenc}\n💰 *Valor cadastrado:* ${valorNovo}\n\n⚠️ Já existia uma conta com a mesma descrição e vencimento, porém com valor diferente. Verifique se não é uma duplicidade!\n\n_AgroFinance_`;
+        try {
+          await base44.functions.invoke('enviarWhatsAppEvolution', { numero: GRUPO_PADRAO, mensagem: msg });
+        } catch (e) {
+          console.error("Erro ao enviar alerta de duplicidade:", e);
+        }
+      }
+
       await carregarDados();
       handleCancelar();
     } catch (error) {
@@ -686,15 +701,15 @@ ${valor}`
       dadosSalvar = { editingId: null, recorrente: false, dados: { ...formDataConta, valor: valorLimpo, dias_antes_avisar: parseInt(formDataConta.dias_antes_avisar) || 3, recorrente: false, parcelas_total: null, parcela_atual: null, grupo_recorrencia_id: null, grupo_whatsapp_id: "120363424659062662@g.us" } };
     }
 
-    // Verificar duplicata apenas ao criar nova conta
+    // Verificar duplicata apenas ao criar nova conta: mesma descrição + mesmo vencimento (independente do valor)
     if (!editingItem) {
       const duplicada = contasAtivas.find(c =>
         c.descricao?.toLowerCase().trim() === formDataConta.descricao?.toLowerCase().trim() &&
-        c.valor === valorLimpo &&
+        c.data_vencimento === formDataConta.data_vencimento &&
         !c.pago
       );
       if (duplicada) {
-        setContaDuplicada(duplicada);
+        setContaDuplicada({ ...duplicada, _valorNovo: valorLimpo });
         setPendingSaveConta(dadosSalvar);
         return;
       }
@@ -1822,7 +1837,12 @@ ${valor}`
       <ContaDuplicadaDialog
         contaDuplicada={contaDuplicada}
         onCancelar={() => { setContaDuplicada(null); setPendingSaveConta(null); }}
-        onSalvarMesmo={async () => { setContaDuplicada(null); await executarSalvarConta(pendingSaveConta); setPendingSaveConta(null); }}
+        onSalvarMesmo={async () => {
+        const alertar = contaDuplicada?._valorNovo !== undefined && Math.abs(contaDuplicada._valorNovo - contaDuplicada.valor) > 0.01;
+        setContaDuplicada(null);
+        await executarSalvarConta(pendingSaveConta, alertar);
+        setPendingSaveConta(null);
+      }}
         onEditar={(conta) => { setContaDuplicada(null); setPendingSaveConta(null); handleEditarConta(conta); }}
         formatarDataSegura={formatarDataSegura}
       />
