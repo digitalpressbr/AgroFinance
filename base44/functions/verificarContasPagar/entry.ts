@@ -80,6 +80,34 @@ Deno.serve(async (req) => {
     const hoje = new Date(agoraBrasilia);
     hoje.setHours(0, 0, 0, 0);
 
+    // === DETECÇÃO DE CONTAS DUPLICADAS ===
+    // Agrupa por descrição+vencimento e alerta se houver valores diferentes
+    const gruposDuplicados = {};
+    for (const conta of contas) {
+      const chave = `${conta.descricao?.toLowerCase().trim()}_${conta.data_vencimento}`;
+      if (!gruposDuplicados[chave]) gruposDuplicados[chave] = [];
+      gruposDuplicados[chave].push(conta);
+    }
+    for (const [chave, grupo] of Object.entries(gruposDuplicados)) {
+      if (grupo.length > 1) {
+        const valoresDistintos = [...new Set(grupo.map(c => c.valor))];
+        if (valoresDistintos.length > 1) {
+          // Valores diferentes para mesma descrição + vencimento = duplicidade suspeita
+          const descricao = grupo[0].descricao;
+          const vencimento = new Date(grupo[0].data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR');
+          const listaValores = grupo.map(c => `• R$ ${c.valor?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`).join('\n');
+          const msg = `⚠️ *ALERTA - CONTAS POSSIVELMENTE DUPLICADAS*\n\n📋 *${descricao}*\n📅 *Vencimento:* ${vencimento}\n\n💰 *Valores cadastrados (${grupo.length}x):*\n${listaValores}\n\n⚠️ Verifique se há duplicidade antes do vencimento!\n\n_AgroFinance_`;
+          try {
+            await enviarWhatsApp(GRUPO_PADRAO, msg);
+            console.log(`[DUPLICIDADE] Alerta enviado para: ${descricao} (${grupo.length} contas, ${valoresDistintos.length} valores distintos)`);
+          } catch (e) {
+            console.error(`[DUPLICIDADE] Erro ao enviar alerta:`, e.message);
+          }
+        }
+      }
+    }
+    // ======================================
+
     let lembretesEnviados = 0;
     const erros = [];
     const resumoPorDestino = {}; // Acumular contas por destino (telefone ou grupo)
