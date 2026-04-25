@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, Bell, Calendar as CalendarIcon, DollarSign, FileText, Upload, Check, X, Undo2, Paperclip, Upload as UploadIcon, Download, ChevronDown, ChevronRight, Send, CreditCard, Copy } from "lucide-react";
+import { Plus, Edit, Trash2, Bell, Calendar as CalendarIcon, DollarSign, FileText, Upload, Check, X, Undo2, Paperclip, Upload as UploadIcon, Download, ChevronDown, ChevronRight, Send, CreditCard, Copy, Search, Filter, XCircle } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { format, differenceInDays, isValid, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -70,6 +70,11 @@ export default function DespesasLembretes() {
   const [lembreteConflitante, setLembreteConflitante] = useState(null);
   const [contaDuplicada, setContaDuplicada] = useState(null);
   const [pendingSaveConta, setPendingSaveConta] = useState(null);
+
+  // Filtros de busca - Contas a Pagar
+  const [buscaConta, setBuscaConta] = useState("");
+  const [filtroCategoriaContas, setFiltroCategoriaContas] = useState("");
+  const [filtroFornecedorContas, setFiltroFornecedorContas] = useState("");
 
   const [formDataConta, setFormDataConta] = useState({
     descricao: "",
@@ -1030,6 +1035,21 @@ ${valor}`
 
   const contasAtivas = contas.filter(c => !c.pago && c.ativo !== false && !c.privado);
   const contasPagas = contas.filter(c => c.pago && !c.privado);
+
+  // Opções únicas para filtros
+  const categoriasUnicas = [...new Set(contasAtivas.map(c => c.categoria).filter(Boolean))].sort();
+  const fornecedoresUnicos = [...new Set(contasAtivas.map(c => c.fornecedor).filter(Boolean))].sort();
+
+  // Contas ativas filtradas
+  const contasAtivasFiltradas = contasAtivas.filter(c => {
+    const matchBusca = !buscaConta || c.descricao?.toLowerCase().includes(buscaConta.toLowerCase());
+    const matchCategoria = !filtroCategoriaContas || c.categoria === filtroCategoriaContas;
+    const matchFornecedor = !filtroFornecedorContas || c.fornecedor === filtroFornecedorContas;
+    return matchBusca && matchCategoria && matchFornecedor;
+  });
+
+  const temFiltroAtivo = buscaConta || filtroCategoriaContas || filtroFornecedorContas;
+  const limparFiltros = () => { setBuscaConta(""); setFiltroCategoriaContas(""); setFiltroFornecedorContas(""); };
   const lembretesAtivos = lembretes.filter(l => l.ativo !== false && !l.concluido);
   const lembretesConcluidos = lembretes.filter(l => l.concluido);
 
@@ -1552,10 +1572,53 @@ ${valor}`
           </TabsList>
 
           <TabsContent value="contas" className="space-y-4 mt-4">
+            {/* Barra de busca e filtros */}
+            {contasAtivas.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={buscaConta}
+                    onChange={(e) => setBuscaConta(e.target.value)}
+                    placeholder="Buscar por descrição..."
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  />
+                </div>
+                {categoriasUnicas.length > 0 && (
+                  <select
+                    value={filtroCategoriaContas}
+                    onChange={(e) => setFiltroCategoriaContas(e.target.value)}
+                    className="text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white"
+                  >
+                    <option value="">Todas categorias</option>
+                    {categoriasUnicas.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                )}
+                {fornecedoresUnicos.length > 0 && (
+                  <select
+                    value={filtroFornecedorContas}
+                    onChange={(e) => setFiltroFornecedorContas(e.target.value)}
+                    className="text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white"
+                  >
+                    <option value="">Todos fornecedores</option>
+                    {fornecedoresUnicos.map(f => <option key={f} value={f}>{f}</option>)}
+                  </select>
+                )}
+                {temFiltroAtivo && (
+                  <button onClick={limparFiltros} className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700 px-2 py-2 rounded-md hover:bg-red-50 transition-colors whitespace-nowrap">
+                    <XCircle className="w-4 h-4" /> Limpar
+                  </button>
+                )}
+              </div>
+            )}
+
             {contasAtivas.length === 0 ? (
               <Card><CardContent className="p-8 text-center text-gray-500"><DollarSign className="w-12 h-12 mx-auto mb-3 text-gray-300" /><p>Nenhuma conta a pagar cadastrada</p></CardContent></Card>
+            ) : contasAtivasFiltradas.length === 0 ? (
+              <Card><CardContent className="p-8 text-center text-gray-500"><Search className="w-12 h-12 mx-auto mb-3 text-gray-300" /><p>Nenhuma conta encontrada com os filtros aplicados</p></CardContent></Card>
             ) : (
-              contasAtivas.map((conta) => {
+              contasAtivasFiltradas.map((conta) => {
                 const diasRestantes = calcularDiasRestantes(conta.data_vencimento);
                 return (
                   <Card key={conta.id} className="hover:shadow-md transition-shadow">
