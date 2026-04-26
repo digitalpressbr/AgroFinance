@@ -51,8 +51,12 @@ Deno.serve(async (req) => {
     // 16:00-16:59 BRT = Aviso antecipado (lembrete_antecipado_enviado)
     const modoNoDia = modoForcarNoDia || horaBrasilia === 6;
     const modoAntecipado = modoForcarAntecipado || horaBrasilia === 16;
+    const modo = modoNoDia ? 'no_dia' : (modoAntecipado ? 'antecipado' : 'nenhum');
+
+    console.log(`[verificarContasPagar] horaBrasilia=${horaBrasilia} modo=${modo} ts=${new Date().toISOString()}`);
 
     if (!modoNoDia && !modoAntecipado) {
+      console.warn(`[verificarContasPagar] Nenhum modo executado nesta hora — possível problema de timezone. horaBrasilia=${horaBrasilia}`);
       console.log(`[GUARD] Fora do horário de envio. Hora BRT: ${horaBrasilia}:${String(minutoBrasilia).padStart(2,'0')}. Envio às 6h (dia) e 16h (antecipado) BRT.`);
       return Response.json({
         success: true,
