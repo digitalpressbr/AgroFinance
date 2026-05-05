@@ -1126,15 +1126,31 @@ ${valor}`
     }));
   };
 
-  const handleDownloadAnexo = (url, fileName) => {
-    if (!url) return;
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName || 'documento.pdf';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadAnexo = (anexo) => {
+    if (!anexo) {
+      toast.error('Anexo não disponível');
+      return;
+    }
+    // Aceita formato antigo (string URL) ou novo (objeto {url, file_name})
+    const url = typeof anexo === 'string' ? anexo : anexo.url;
+    const fileName = typeof anexo === 'object' ? (anexo.file_name || 'documento.pdf') : 'documento.pdf';
+    if (!url) {
+      toast.error('URL do anexo inválida');
+      return;
+    }
+    // Abre em nova aba — mais confiável que <a download> em URLs cross-origin
+    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!newWindow) {
+      // Fallback se popup foi bloqueado
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   if (showForm) {
