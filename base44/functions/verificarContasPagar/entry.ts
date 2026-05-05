@@ -307,37 +307,40 @@ Deno.serve(async (req) => {
       try {
         const { conta, destino, deveEnviarNoDia, deveEnviarAntecipado, dataFormatada, valorFormatado } = info;
 
-        // === PROTEÇÃO ANTI-DUPLICAÇÃO ATÔMICA ===
-        // Re-ler a conta AGORA para pegar o estado mais recente do banco
+        // === PROTEÇÃO ANTI-DUPLICAÇÃO COM CLAIM ID ===
+        // Gerar UUID único desta execução para esta conta
+        const myClaimId = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+        // Verifica primeiro se já foi enviado em runs anteriores (flag persistente)
         const contaAtual = await base44.asServiceRole.entities.ContaPagar.get(conta.id);
-        
-        // Se os flags já foram marcados por outra execução paralela, pular
         if (deveEnviarNoDia && contaAtual.lembrete_enviado) {
-          console.log(`[SKIP-RACE] ${conta.descricao} (${conta.id}) - lembrete_enviado já setado`);
+          console.log(`[SKIP] ${conta.descricao} (${conta.id}) - lembrete_enviado já setado`);
           continue;
         }
         if (deveEnviarAntecipado && contaAtual.lembrete_antecipado_enviado) {
-          console.log(`[SKIP-RACE] ${conta.descricao} (${conta.id}) - lembrete_antecipado_enviado já setado`);
+          console.log(`[SKIP] ${conta.descricao} (${conta.id}) - lembrete_antecipado_enviado já setado`);
           continue;
         }
 
-        // Marcar como enviado IMEDIATAMENTE antes de qualquer outra operação
+        // Tenta fazer o claim (todos os runs paralelos vão escrever — o último vence)
+        await base44.asServiceRole.entities.ContaPagar.update(conta.id, { lembrete_claim_id: myClaimId });
+
+        // Pequeno delay aleatório (300-1500ms) para deixar runs paralelos terminarem seus claims
+        await new Promise(r => setTimeout(r, 300 + Math.random() * 1200));
+
+        // Re-lê: se o claim_id no banco for o nosso, vencemos a corrida; senão, perdemos
+        const contaPosClaim = await base44.asServiceRole.entities.ContaPagar.get(conta.id);
+        if (contaPosClaim.lembrete_claim_id !== myClaimId) {
+          console.log(`[SKIP-CLAIM] ${conta.descricao} - outra execução venceu o claim`);
+          continue;
+        }
+
+        // Marcar flags persistentes ANTES de enviar
         const updateData = {};
         if (deveEnviarNoDia) updateData.lembrete_enviado = true;
         if (deveEnviarAntecipado) updateData.lembrete_antecipado_enviado = true;
         await base44.asServiceRole.entities.ContaPagar.update(conta.id, updateData);
-
-        // Re-verificar após o update para garantir que fomos nós que gravamos primeiro
-        const contaAposUpdate = await base44.asServiceRole.entities.ContaPagar.get(conta.id);
-        if (deveEnviarNoDia && !contaAposUpdate.lembrete_enviado) {
-          console.log(`[SKIP-RACE2] ${conta.descricao} - update não refletido, outra execução ganhou`);
-          continue;
-        }
-        if (deveEnviarAntecipado && !contaAposUpdate.lembrete_antecipado_enviado) {
-          console.log(`[SKIP-RACE2] ${conta.descricao} - update não refletido, outra execução ganhou`);
-          continue;
-        }
-        // =========================================
+        // =============================================
 
         let mensagem;
         const recorrenteInfo = conta.recorrente ? `💳 *Parcela ${conta.parcela_atual}/${conta.parcelas_total}*\n` : '';
