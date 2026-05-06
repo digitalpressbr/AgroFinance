@@ -1126,30 +1126,39 @@ ${valor}`
     }));
   };
 
-  const handleDownloadAnexo = (anexo) => {
+  const handleDownloadAnexo = async (anexo) => {
     if (!anexo) {
       toast.error('Anexo não disponível');
       return;
     }
-    // Aceita formato antigo (string URL) ou novo (objeto {url, file_name})
-    const url = typeof anexo === 'string' ? anexo : anexo.url;
-    const fileName = typeof anexo === 'object' ? (anexo.file_name || 'documento.pdf') : 'documento.pdf';
+    const url = typeof anexo === 'string' ? anexo : anexo?.url;
+    const fileName = (typeof anexo === 'object' && anexo?.file_name) || 'documento.pdf';
     if (!url) {
       toast.error('URL do anexo inválida');
       return;
     }
-    // Abre em nova aba — mais confiável que <a download> em URLs cross-origin
-    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!newWindow) {
-      // Fallback se popup foi bloqueado
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
+      link.href = blobUrl;
       link.download = fileName;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      toast.success('Recibo baixado!');
+    } catch (err) {
+      console.error('Erro ao baixar anexo via blob:', err);
+      // Fallback: abre em nova aba (sem noopener para preservar reference)
+      const newWindow = window.open(url, '_blank');
+      if (!newWindow) {
+        toast.error('Pop-up bloqueado. Permita pop-ups para baixar.');
+      } else {
+        toast.info('Abrindo em nova aba — use Ctrl+S para salvar');
+      }
     }
   };
 
