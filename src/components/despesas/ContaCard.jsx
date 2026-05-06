@@ -40,8 +40,8 @@ export default function ContaCard({
             </div>
             <div className="flex gap-2">
               {onReutilizar && <Button variant="ghost" size="icon" onClick={() => onReutilizar(conta)} className="text-green-600 hover:text-green-700" title="Usar como rascunho"><Copy className="w-4 h-4" /></Button>}
-              {conta.boleto_anexo && onDownloadAnexo && <Button variant="ghost" size="icon" onClick={() => onDownloadAnexo(conta.boleto_anexo)} className="text-blue-600 hover:text-blue-700" title="Baixar boleto"><Download className="w-4 h-4" /></Button>}
-              {conta.recibo_anexo && onDownloadAnexo && <Button variant="ghost" size="icon" onClick={() => onDownloadAnexo(conta.recibo_anexo)} className="text-purple-600 hover:text-purple-700" title="Baixar recibo"><FileText className="w-4 h-4" /></Button>}
+              {conta.boleto_anexo && onDownloadAnexo && <Button variant="ghost" size="icon" onClick={() => onDownloadAnexo(conta.boleto_anexo, conta, 'boleto')} className="text-blue-600 hover:text-blue-700" title="Baixar boleto"><Download className="w-4 h-4" /></Button>}
+              {conta.recibo_anexo && onDownloadAnexo && <Button variant="ghost" size="icon" onClick={() => onDownloadAnexo(conta.recibo_anexo, conta, 'recibo')} className="text-purple-600 hover:text-purple-700" title="Baixar recibo"><FileText className="w-4 h-4" /></Button>}
               {onDesmarcarPago && <Button variant="ghost" size="icon" onClick={() => onDesmarcarPago(conta.id)} className="text-orange-600 hover:text-orange-700" title="Retornar para a pagar"><Undo2 className="w-4 h-4" /></Button>}
               {onExcluir && <Button variant="ghost" size="icon" onClick={() => onExcluir({ id: conta.id, tipo: 'conta' })} className="text-red-600 hover:text-red-700" title="Excluir"><Trash2 className="w-4 h-4" /></Button>}
             </div>

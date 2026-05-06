@@ -16,6 +16,7 @@ import AutocompleteInput from "../components/common/AutocompleteInput";
 import GerenciarPixDialog from "../components/despesas/GerenciarPixDialog";
 import ContaDuplicadaDialog from "../components/despesas/ContaDuplicadaDialog";
 import ContaCard from "../components/despesas/ContaCard";
+import { downloadAnexoComNome } from "../components/despesas/downloadAnexo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1126,41 +1127,7 @@ ${valor}`
     }));
   };
 
-  const handleDownloadAnexo = async (anexo) => {
-    if (!anexo) {
-      toast.error('Anexo não disponível');
-      return;
-    }
-    const url = typeof anexo === 'string' ? anexo : anexo?.url;
-    const fileName = (typeof anexo === 'object' && anexo?.file_name) || 'documento.pdf';
-    if (!url) {
-      toast.error('URL do anexo inválida');
-      return;
-    }
-    try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-      toast.success('Recibo baixado!');
-    } catch (err) {
-      console.error('Erro ao baixar anexo via blob:', err);
-      // Fallback: abre em nova aba (sem noopener para preservar reference)
-      const newWindow = window.open(url, '_blank');
-      if (!newWindow) {
-        toast.error('Pop-up bloqueado. Permita pop-ups para baixar.');
-      } else {
-        toast.info('Abrindo em nova aba — use Ctrl+S para salvar');
-      }
-    }
-  };
+  const handleDownloadAnexo = (anexo, conta, tipo = 'documento') => downloadAnexoComNome(anexo, conta, tipo);
 
   if (showForm) {
     return (
