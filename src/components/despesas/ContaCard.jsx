@@ -20,8 +20,6 @@ export default function ContaCard({
   onDownloadAnexo,
   className = ""
 }) {
-  const diasRestantes = calcularDiasRestantes(conta.data_vencimento);
-
   if (paga) {
     return (
       <Card className={`hover:shadow-md transition-shadow bg-white ${className}`}>
@@ -52,6 +50,8 @@ export default function ContaCard({
       </Card>
     );
   }
+
+  const diasRestantes = calcularDiasRestantes(conta.data_vencimento);
 
   return (
     <Card className={`hover:shadow-md transition-shadow ${className}`}>
