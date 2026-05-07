@@ -803,8 +803,26 @@ ${valor}`
           recibo_anexo: null
         };
         
-        await base44.entities.ContaPagar.create(proximaConta);
-        toast.success(`Conta paga! Próxima parcela ${conta.parcela_atual + 1}/${conta.parcelas_total} criada.`);
+        // ANTI-DUPLICATA: verificar se a próxima parcela já foi criada (race entre cliques rápidos)
+        const proximaParcelaNum = conta.parcela_atual + 1;
+        let jaExisteProxima = [];
+        try {
+          jaExisteProxima = await base44.entities.ContaPagar.filter({
+            grupo_recorrencia_id: conta.grupo_recorrencia_id,
+            parcela_atual: proximaParcelaNum,
+            ativo: true
+          });
+        } catch (e) {
+          console.warn('[ANTI-DUP] Falha ao consultar duplicata:', e);
+        }
+
+        if (jaExisteProxima && jaExisteProxima.length > 0) {
+          console.warn(`[ANTI-DUP] Próxima parcela ${proximaParcelaNum}/${conta.parcelas_total} do grupo ${conta.grupo_recorrencia_id} já existe. Pulando criação.`);
+          toast.info(`Próxima parcela ${proximaParcelaNum}/${conta.parcelas_total} já existe — não foi recriada.`);
+        } else {
+          await base44.entities.ContaPagar.create(proximaConta);
+          toast.success(`Conta paga! Próxima parcela ${proximaParcelaNum}/${conta.parcelas_total} criada.`);
+        }
       } else {
         toast.success("Conta marcada como paga!");
       }
