@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
+import { sugerirCategorias } from "./cnaeCategorias";
 
 // Padroniza: primeira letra maiúscula em cada palavra; preposições e siglas tratadas
 const SIGLAS = new Set(['PIX','IOF','IPVA','IPTU','ITR','IR','INSS','FGTS','ICMS','ISS','SANEAGO','SA','LTDA','ME','EPP','BB','CEF','TV','NET','GNV','GLP','KM','S.A.']);
@@ -48,7 +49,7 @@ function formatarCPF(valor) {
     .replace(/\.(\d{3})(\d)/, '.$1-$2');
 }
 
-export default function SelectComCadastro({ label, icone, value, onChange, opcoes, onCriar, placeholder = "Selecione...", modoCnpj = false }) {
+export default function SelectComCadastro({ label, icone, value, onChange, opcoes, onCriar, placeholder = "Selecione...", modoCnpj = false, onSugerirCategorias }) {
   const [showDialog, setShowDialog] = useState(false);
   const [tipoAba, setTipoAba] = useState('pj'); // pj | pf | outro
   const [novoNome, setNovoNome] = useState('');
@@ -84,11 +85,19 @@ export default function SelectComCadastro({ label, icone, value, onChange, opcoe
       const data = resp?.data || resp;
       if (data?.error) { toast.error(data.error); return; }
       if (!data?.razao_social) { toast.error('Razão social não retornada pela API'); return; }
+      const razao = padronizar(data.razao_social);
       setDadosCnpj({
         cnpj: data.cnpj,
-        razao_social: padronizar(data.razao_social),
-        nome_fantasia: data.nome_fantasia ? padronizar(data.nome_fantasia) : ''
+        razao_social: razao,
+        nome_fantasia: data.nome_fantasia ? padronizar(data.nome_fantasia) : '',
+        cnae_fiscal: data.cnae_fiscal || '',
+        cnae_fiscal_descricao: data.cnae_fiscal_descricao || ''
       });
+      // Sugerir categorias com base no CNAE
+      if (onSugerirCategorias) {
+        const sugeridas = sugerirCategorias(data.cnae_fiscal, razao);
+        onSugerirCategorias(sugeridas);
+      }
       toast.success('CNPJ encontrado!');
     } catch (e) {
       console.error(e);
@@ -227,6 +236,9 @@ export default function SelectComCadastro({ label, icone, value, onChange, opcoe
                     <p className="text-sm"><span className="text-gray-600">Razão Social:</span> <span className="font-semibold text-green-800">{dadosCnpj.razao_social}</span></p>
                     {dadosCnpj.nome_fantasia && (
                       <p className="text-sm"><span className="text-gray-600">Nome Fantasia:</span> <span className="font-medium">{dadosCnpj.nome_fantasia}</span></p>
+                    )}
+                    {dadosCnpj.cnae_fiscal_descricao && (
+                      <p className="text-xs text-gray-500">Atividade: {dadosCnpj.cnae_fiscal_descricao}</p>
                     )}
                   </div>
                 )}

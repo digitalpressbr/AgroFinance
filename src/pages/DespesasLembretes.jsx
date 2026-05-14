@@ -77,6 +77,7 @@ export default function DespesasLembretes() {
   const [lembreteConflitante, setLembreteConflitante] = useState(null);
   const [contaDuplicada, setContaDuplicada] = useState(null);
   const [pendingSaveConta, setPendingSaveConta] = useState(null);
+  const [categoriasSugeridas, setCategoriasSugeridas] = useState([]);
 
   // Filtros de busca - Contas a Pagar
   const [buscaConta, setBuscaConta] = useState("");
@@ -1231,6 +1232,7 @@ ${valor}`
                         onCriar={handleCriarFornecedor}
                         placeholder="Selecione o fornecedor"
                         modoCnpj={true}
+                        onSugerirCategorias={setCategoriasSugeridas}
                       />
                     </div>
 
@@ -1244,6 +1246,28 @@ ${valor}`
                         onCriar={handleCriarCategoria}
                         placeholder="Selecione a categoria"
                       />
+                      {categoriasSugeridas.length > 0 && !formDataConta.categoria && (
+                        <div className="mt-2 flex flex-wrap gap-1.5 items-center">
+                          <span className="text-xs text-gray-500">💡 Sugestões:</span>
+                          {categoriasSugeridas.map((cat) => (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={async () => {
+                                const existe = categorias.find(c => c.nome.toLowerCase() === cat.toLowerCase());
+                                if (!existe) {
+                                  await handleCriarCategoria(cat);
+                                }
+                                setFormDataConta(prev => ({...prev, categoria: cat}));
+                                setCategoriasSugeridas([]);
+                              }}
+                              className="px-2 py-1 text-xs rounded-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
+                            >
+                              {cat}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 

@@ -30,7 +30,9 @@ Deno.serve(async (req) => {
       nome_fantasia: data.nome_fantasia || '',
       municipio: data.municipio || '',
       uf: data.uf || '',
-      situacao: data.descricao_situacao_cadastral || ''
+      situacao: data.descricao_situacao_cadastral || '',
+      cnae_fiscal: data.cnae_fiscal ? String(data.cnae_fiscal) : '',
+      cnae_fiscal_descricao: data.cnae_fiscal_descricao || ''
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
