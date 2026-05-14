@@ -17,6 +17,8 @@ import GerenciarPixDialog from "../components/despesas/GerenciarPixDialog";
 import ContaDuplicadaDialog from "../components/despesas/ContaDuplicadaDialog";
 import ContaCard from "../components/despesas/ContaCard";
 import { downloadAnexoComNome } from "../components/despesas/downloadAnexo";
+import SelectComCadastro from "../components/despesas/SelectComCadastro";
+import { Building2, Tag } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +41,8 @@ export default function DespesasLembretes() {
   const [contas, setContas] = useState([]);
   const [lembretes, setLembretes] = useState([]);
   const [chavesPix, setChavesPix] = useState([]);
+  const [fornecedores, setFornecedores] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [tipoForm, setTipoForm] = useState("conta"); // "conta" ou "lembrete"
@@ -113,8 +117,32 @@ export default function DespesasLembretes() {
   useEffect(() => {
     carregarDados();
     carregarChavesPix();
+    carregarFornecedoresECategorias();
     moverLembretesVencidosAutomaticamente();
   }, []);
+
+  const carregarFornecedoresECategorias = async () => {
+    try {
+      const [forn, cat] = await Promise.all([
+        base44.entities.Fornecedor.list('nome', 1000),
+        base44.entities.Categoria.list('nome', 1000)
+      ]);
+      setFornecedores(forn || []);
+      setCategorias(cat || []);
+    } catch (e) {
+      console.error('Erro ao carregar fornecedores/categorias:', e);
+    }
+  };
+
+  const handleCriarFornecedor = async (nome) => {
+    const novo = await base44.entities.Fornecedor.create({ nome, ativo: true });
+    setFornecedores(prev => [...prev, novo].sort((a, b) => a.nome.localeCompare(b.nome)));
+  };
+
+  const handleCriarCategoria = async (nome) => {
+    const nova = await base44.entities.Categoria.create({ nome, ativo: true });
+    setCategorias(prev => [...prev, nova].sort((a, b) => a.nome.localeCompare(b.nome)));
+  };
 
   const moverLembretesVencidosAutomaticamente = async () => {
     try {
@@ -1189,29 +1217,27 @@ ${valor}`
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label>Fornecedor</Label>
-                      <AutocompleteInput
+                      <SelectComCadastro
+                        label="Fornecedor"
+                        icone={<Building2 className="w-4 h-4 text-blue-600" />}
                         value={formDataConta.fornecedor}
-                        onChange={(e) => setFormDataConta({...formDataConta, fornecedor: e.target.value})}
-                        onBlur={() => handleCorrecaoOrtografica('fornecedor', 'conta')}
-                        placeholder="Nome do fornecedor"
-                        suggestions={sugestoes.fornecedores}
-                        disabled={corrigindoTexto.fornecedor}
+                        onChange={(v) => setFormDataConta({...formDataConta, fornecedor: v})}
+                        opcoes={fornecedores}
+                        onCriar={handleCriarFornecedor}
+                        placeholder="Selecione o fornecedor"
                       />
-                      {corrigindoTexto.fornecedor && <p className="text-xs text-blue-600 mt-1">✨ Corrigindo...</p>}
                     </div>
 
                     <div>
-                      <Label>Categoria</Label>
-                      <AutocompleteInput
+                      <SelectComCadastro
+                        label="Categoria"
+                        icone={<Tag className="w-4 h-4 text-purple-600" />}
                         value={formDataConta.categoria}
-                        onChange={(e) => setFormDataConta({...formDataConta, categoria: e.target.value})}
-                        onBlur={() => handleCorrecaoOrtografica('categoria', 'conta')}
-                        placeholder="Ex: Energia, Água, etc"
-                        suggestions={sugestoes.categorias}
-                        disabled={corrigindoTexto.categoria}
+                        onChange={(v) => setFormDataConta({...formDataConta, categoria: v})}
+                        opcoes={categorias}
+                        onCriar={handleCriarCategoria}
+                        placeholder="Selecione a categoria"
                       />
-                      {corrigindoTexto.categoria && <p className="text-xs text-blue-600 mt-1">✨ Corrigindo...</p>}
                     </div>
                   </div>
 

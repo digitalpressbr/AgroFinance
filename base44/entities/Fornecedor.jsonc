@@ -1,0 +1,18 @@
+{
+  "name": "Fornecedor",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do fornecedor padronizado (Primeira letra mai\u00fascula, siglas em mai\u00fasculo)"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o fornecedor est\u00e1 dispon\u00edvel para uso"
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}
