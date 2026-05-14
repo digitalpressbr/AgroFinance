@@ -76,6 +76,27 @@ function matchPorKeywords(textoConta, keywords) {
   return false;
 }
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// Retry com backoff para rate limit
+async function comRetry(fn, maxTentativas = 4) {
+  let ultimoErro;
+  for (let i = 0; i < maxTentativas; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      ultimoErro = err;
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('rate limit') || msg.includes('429')) {
+        await sleep(2000 * (i + 1)); // 2s, 4s, 6s, 8s
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw ultimoErro;
+}
+
 // =================================================================
 // HANDLER
 // =================================================================
@@ -88,6 +109,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const dryRun = body.dryRun !== false; // padrão = true (preview)
+    const etapa = body.etapa || 'tudo'; // 'categorias' | 'fornecedores' | 'contas' | 'tudo'
 
     const relatorio = {
       dryRun,
@@ -97,22 +119,32 @@ Deno.serve(async (req) => {
     };
 
     // ============ 1. CATEGORIAS ============
+    if (etapa !== 'categorias' && etapa !== 'tudo') {
+      // pula categorias
+    }
     const todasCategorias = await base44.asServiceRole.entities.Categoria.list('', 500);
     const catsExistentesNorm = new Map(todasCategorias.map(c => [normalizar(c.nome), c]));
 
-    for (const nomeCat of CATEGORIAS_NOVAS) {
-      const existe = catsExistentesNorm.get(normalizar(nomeCat));
-      if (existe) {
-        relatorio.categorias.existentes.push(nomeCat);
-      } else if (!dryRun) {
-        await base44.asServiceRole.entities.Categoria.create({ nome: nomeCat, ativo: true });
-        relatorio.categorias.criadas.push(nomeCat);
-      } else {
-        relatorio.categorias.criadas.push(nomeCat + ' (preview)');
+    if (etapa === 'categorias' || etapa === 'tudo') {
+      for (const nomeCat of CATEGORIAS_NOVAS) {
+        const existe = catsExistentesNorm.get(normalizar(nomeCat));
+        if (existe) {
+          relatorio.categorias.existentes.push(nomeCat);
+        } else if (!dryRun) {
+          await comRetry(() => base44.asServiceRole.entities.Categoria.create({ nome: nomeCat, ativo: true }));
+          await sleep(150);
+          relatorio.categorias.criadas.push(nomeCat);
+        } else {
+          relatorio.categorias.criadas.push(nomeCat + ' (preview)');
+        }
       }
     }
 
     // ============ 2. FORNECEDORES ============
+    if (!(etapa === 'fornecedores' || etapa === 'contas' || etapa === 'tudo')) {
+      relatorio.resumo = { etapa, mensagem: 'Etapa de fornecedores pulada' };
+      return Response.json(relatorio);
+    }
     const todosFornecedores = await base44.asServiceRole.entities.Fornecedor.list('', 1000);
 
     // Indexar fornecedores existentes por CNPJ, CPF e nome normalizado
@@ -126,7 +158,8 @@ Deno.serve(async (req) => {
     }
 
     // PJ
-    for (const f of FORNECEDORES_PJ) {
+    const processarFornecedores = (etapa === 'fornecedores' || etapa === 'tudo');
+    if (processarFornecedores) for (const f of FORNECEDORES_PJ) {
       const cnpjLimpo = f.cnpj.replace(/\D/g, '');
       let existente = forneceByCnpj.get(cnpjLimpo) || forneceByNome.get(normalizar(f.razao));
 
@@ -142,7 +175,8 @@ Deno.serve(async (req) => {
         const precisaAtualizar = !existente.cnpj || existente.tipo !== 'pj' || existente.nome !== f.razao;
         if (precisaAtualizar) {
           if (!dryRun) {
-            await base44.asServiceRole.entities.Fornecedor.update(existente.id, dadosNovos);
+            await comRetry(() => base44.asServiceRole.entities.Fornecedor.update(existente.id, dadosNovos));
+            await sleep(150);
           }
           relatorio.fornecedores.atualizados.push({ nome: f.razao, cnpj: cnpjLimpo, id: existente.id });
         } else {
@@ -150,15 +184,16 @@ Deno.serve(async (req) => {
         }
       } else {
         if (!dryRun) {
-          const novo = await base44.asServiceRole.entities.Fornecedor.create(dadosNovos);
+          const novo = await comRetry(() => base44.asServiceRole.entities.Fornecedor.create(dadosNovos));
           existente = novo;
+          await sleep(150);
         }
         relatorio.fornecedores.criados.push({ nome: f.razao, cnpj: cnpjLimpo });
       }
     }
 
     // PF
-    for (const f of FORNECEDORES_PF) {
+    if (processarFornecedores) for (const f of FORNECEDORES_PF) {
       const cpfLimpo = f.cpf.replace(/\D/g, '');
       let existente = forneceByCpf.get(cpfLimpo) || forneceByNome.get(normalizar(f.nome));
 
@@ -173,7 +208,8 @@ Deno.serve(async (req) => {
         const precisaAtualizar = !existente.cpf || existente.tipo !== 'pf' || existente.nome !== f.nome;
         if (precisaAtualizar) {
           if (!dryRun) {
-            await base44.asServiceRole.entities.Fornecedor.update(existente.id, dadosNovos);
+            await comRetry(() => base44.asServiceRole.entities.Fornecedor.update(existente.id, dadosNovos));
+            await sleep(150);
           }
           relatorio.fornecedores.atualizados.push({ nome: f.nome, cpf: cpfLimpo, id: existente.id });
         } else {
@@ -181,14 +217,23 @@ Deno.serve(async (req) => {
         }
       } else {
         if (!dryRun) {
-          await base44.asServiceRole.entities.Fornecedor.create(dadosNovos);
+          await comRetry(() => base44.asServiceRole.entities.Fornecedor.create(dadosNovos));
+          await sleep(150);
         }
         relatorio.fornecedores.criados.push({ nome: f.nome, cpf: cpfLimpo });
       }
     }
 
     // ============ 3. MIGRAÇÃO DAS CONTAS ============
-    // Buscar todas as contas (apenas do usuário admin atual via service role mas filtrando ativas)
+    if (etapa !== 'contas' && etapa !== 'tudo') {
+      relatorio.resumo = {
+        etapa,
+        categorias_criadas: relatorio.categorias.criadas.length,
+        fornecedores_criados: relatorio.fornecedores.criados.length,
+        fornecedores_atualizados: relatorio.fornecedores.atualizados.length
+      };
+      return Response.json(relatorio);
+    }
     const todasContas = await base44.asServiceRole.entities.ContaPagar.list('', 5000);
     relatorio.contas.totalAnalisadas = todasContas.length;
 
@@ -244,7 +289,8 @@ Deno.serve(async (req) => {
       if (!categoriaJaCorreta && !ehMutua) updates.categoria = match.categoria;
 
       if (!dryRun && Object.keys(updates).length > 0) {
-        await base44.asServiceRole.entities.ContaPagar.update(conta.id, updates);
+        await comRetry(() => base44.asServiceRole.entities.ContaPagar.update(conta.id, updates));
+        await sleep(200);
       }
 
       relatorio.contas.migradas.push({
