@@ -3,12 +3,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { Plus, Search, Loader2 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 
 // Padroniza: primeira letra maiúscula em cada palavra; preposições e siglas tratadas
 const SIGLAS = new Set(['PIX','IOF','IPVA','IPTU','ITR','IR','INSS','FGTS','ICMS','ISS','SANEAGO','SA','LTDA','ME','EPP','BB','CEF','TV','NET','GNV','GLP','KM','S.A.']);
@@ -29,27 +30,96 @@ function padronizar(raw) {
   }).join(' ');
 }
 
-export default function SelectComCadastro({ label, icone, value, onChange, opcoes, onCriar, placeholder = "Selecione..." }) {
+function formatarCNPJ(valor) {
+  const n = String(valor || '').replace(/\D/g, '').slice(0, 14);
+  return n
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+}
+
+export default function SelectComCadastro({ label, icone, value, onChange, opcoes, onCriar, placeholder = "Selecione...", modoCnpj = false }) {
   const [showDialog, setShowDialog] = useState(false);
   const [novoNome, setNovoNome] = useState('');
+  const [cnpjInput, setCnpjInput] = useState('');
+  const [dadosCnpj, setDadosCnpj] = useState(null); // { cnpj, razao_social, nome_fantasia }
+  const [consultando, setConsultando] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
-  const handleSalvar = async () => {
+  const limparEstado = () => {
+    setNovoNome('');
+    setCnpjInput('');
+    setDadosCnpj(null);
+  };
+
+  const handleConsultarCNPJ = async () => {
+    const numeros = cnpjInput.replace(/\D/g, '');
+    if (numeros.length !== 14) {
+      toast.error('Digite um CNPJ válido (14 dígitos)');
+      return;
+    }
+    // Checar duplicata por CNPJ
+    if (opcoes.some(o => o.cnpj && o.cnpj.replace(/\D/g, '') === numeros)) {
+      toast.error('Este CNPJ já está cadastrado');
+      return;
+    }
+    setConsultando(true);
+    try {
+      const resp = await base44.functions.invoke('consultarCNPJ', { cnpj: numeros });
+      const data = resp?.data || resp;
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      if (!data?.razao_social) {
+        toast.error('Razão social não retornada pela API');
+        return;
+      }
+      setDadosCnpj({
+        cnpj: data.cnpj,
+        razao_social: padronizar(data.razao_social),
+        nome_fantasia: data.nome_fantasia ? padronizar(data.nome_fantasia) : ''
+      });
+      toast.success('CNPJ encontrado!');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao consultar CNPJ');
+    } finally {
+      setConsultando(false);
+    }
+  };
+
+  const handleSalvarCnpj = async () => {
+    if (!dadosCnpj) return;
+    setSalvando(true);
+    try {
+      await onCriar({ nome: dadosCnpj.razao_social, cnpj: dadosCnpj.cnpj, nome_fantasia: dadosCnpj.nome_fantasia });
+      onChange(dadosCnpj.razao_social);
+      setShowDialog(false);
+      limparEstado();
+      toast.success(`"${dadosCnpj.razao_social}" cadastrado!`);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao cadastrar');
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const handleSalvarManual = async () => {
     const padronizado = padronizar(novoNome);
     if (!padronizado) { toast.error('Digite um nome válido'); return; }
-
-    // Checa duplicata (case-insensitive)
     if (opcoes.some(o => o.nome.toLowerCase() === padronizado.toLowerCase())) {
       toast.error('Este nome já existe na lista');
       return;
     }
-
     setSalvando(true);
     try {
       await onCriar(padronizado);
       onChange(padronizado);
       setShowDialog(false);
-      setNovoNome('');
+      limparEstado();
       toast.success(`"${padronizado}" cadastrado!`);
     } catch (e) {
       console.error(e);
@@ -82,33 +152,88 @@ export default function SelectComCadastro({ label, icone, value, onChange, opcoe
         </Button>
       </div>
 
-      <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
+      <AlertDialog open={showDialog} onOpenChange={(open) => { setShowDialog(open); if (!open) limparEstado(); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cadastrar {label}</AlertDialogTitle>
             <AlertDialogDescription>
-              Digite o nome. Será padronizado automaticamente (ex: "saneago" → "SANEAGO", "banco do brasil" → "Banco do Brasil").
+              {modoCnpj
+                ? 'Digite o CNPJ. A razão social será buscada automaticamente.'
+                : 'Digite o nome. Será padronizado automaticamente.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-2">
-            <Input
-              value={novoNome}
-              onChange={(e) => setNovoNome(e.target.value)}
-              placeholder={`Nome do ${label.toLowerCase()}`}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSalvar(); } }}
-              autoFocus
-            />
-            {novoNome && (
-              <p className="text-xs text-gray-500 mt-2">
-                Será salvo como: <span className="font-semibold text-green-700">{padronizar(novoNome)}</span>
-              </p>
-            )}
-          </div>
+
+          {modoCnpj ? (
+            <div className="py-2 space-y-3">
+              <div>
+                <Label className="text-xs text-gray-600">CNPJ</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    value={cnpjInput}
+                    onChange={(e) => setCnpjInput(formatarCNPJ(e.target.value))}
+                    placeholder="00.000.000/0000-00"
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleConsultarCNPJ(); } }}
+                    disabled={consultando || !!dadosCnpj}
+                    autoFocus
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleConsultarCNPJ}
+                    disabled={consultando || !!dadosCnpj || cnpjInput.replace(/\D/g, '').length !== 14}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {consultando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              {dadosCnpj && (
+                <div className="bg-green-50 border border-green-200 rounded-md p-3 space-y-1">
+                  <p className="text-xs text-green-700 font-medium">✓ Dados encontrados:</p>
+                  <p className="text-sm"><span className="text-gray-600">Razão Social:</span> <span className="font-semibold text-green-800">{dadosCnpj.razao_social}</span></p>
+                  {dadosCnpj.nome_fantasia && (
+                    <p className="text-sm"><span className="text-gray-600">Nome Fantasia:</span> <span className="font-medium">{dadosCnpj.nome_fantasia}</span></p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">Será cadastrado com a razão social acima.</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="py-2">
+              <Input
+                value={novoNome}
+                onChange={(e) => setNovoNome(e.target.value)}
+                placeholder={`Nome do ${label.toLowerCase()}`}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSalvarManual(); } }}
+                autoFocus
+              />
+              {novoNome && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Será salvo como: <span className="font-semibold text-green-700">{padronizar(novoNome)}</span>
+                </p>
+              )}
+            </div>
+          )}
+
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={salvando} onClick={() => setNovoNome('')}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSalvar} disabled={salvando || !novoNome.trim()} className="bg-green-600 hover:bg-green-700">
-              {salvando ? 'Salvando...' : 'Cadastrar'}
-            </AlertDialogAction>
+            <AlertDialogCancel disabled={salvando || consultando}>Cancelar</AlertDialogCancel>
+            {modoCnpj ? (
+              <AlertDialogAction
+                onClick={handleSalvarCnpj}
+                disabled={salvando || !dadosCnpj}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {salvando ? 'Salvando...' : 'Cadastrar'}
+              </AlertDialogAction>
+            ) : (
+              <AlertDialogAction
+                onClick={handleSalvarManual}
+                disabled={salvando || !novoNome.trim()}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {salvando ? 'Salvando...' : 'Cadastrar'}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
