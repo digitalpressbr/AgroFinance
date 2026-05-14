@@ -4,11 +4,25 @@
   "properties": {
     "nome": {
       "type": "string",
-      "description": "Raz\u00e3o social do fornecedor (preenchida automaticamente via consulta de CNPJ)"
+      "description": "Nome / raz\u00e3o social do fornecedor"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "pj",
+        "pf",
+        "outro"
+      ],
+      "default": "outro",
+      "description": "Tipo do fornecedor: pj (Pessoa Jur\u00eddica), pf (Pessoa F\u00edsica), outro (\u00f3rg\u00e3o p\u00fablico, taxa, etc.)"
     },
     "cnpj": {
       "type": "string",
-      "description": "CNPJ do fornecedor (somente n\u00fameros, 14 d\u00edgitos)"
+      "description": "CNPJ do fornecedor (somente para pessoa jur\u00eddica, 14 d\u00edgitos)"
+    },
+    "cpf": {
+      "type": "string",
+      "description": "CPF do fornecedor (somente para pessoa f\u00edsica, 11 d\u00edgitos)"
     },
     "nome_fantasia": {
       "type": "string",
