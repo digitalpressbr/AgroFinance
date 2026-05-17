@@ -17,7 +17,7 @@ import GerenciarPixDialog from "../components/despesas/GerenciarPixDialog";
 import ContaDuplicadaDialog from "../components/despesas/ContaDuplicadaDialog";
 import ContaCard from "../components/despesas/ContaCard";
 import { downloadAnexoComNome } from "../components/despesas/downloadAnexo";
-import SelectComCadastro from "../components/despesas/SelectComCadastro";
+import FornecedorCategoriaSection from "../components/despesas/FornecedorCategoriaSection";
 import FormularioLembrete from "../components/despesas/FormularioLembrete";
 import { Building2, Tag } from "lucide-react";
 import {
@@ -77,7 +77,6 @@ export default function DespesasLembretes() {
   const [lembreteConflitante, setLembreteConflitante] = useState(null);
   const [contaDuplicada, setContaDuplicada] = useState(null);
   const [pendingSaveConta, setPendingSaveConta] = useState(null);
-  const [categoriasSugeridas, setCategoriasSugeridas] = useState([]);
 
   // Filtros de busca - Contas a Pagar
   const [buscaConta, setBuscaConta] = useState("");
@@ -1221,55 +1220,13 @@ ${valor}`
                     {corrigindoTexto.descricao && <p className="text-xs text-blue-600 mt-1">✨ Corrigindo...</p>}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <SelectComCadastro
-                        label="Fornecedor"
-                        icone={<Building2 className="w-4 h-4 text-blue-600" />}
-                        value={formDataConta.fornecedor}
-                        onChange={(v) => setFormDataConta({...formDataConta, fornecedor: v})}
-                        opcoes={fornecedores}
-                        onCriar={handleCriarFornecedor}
-                        placeholder="Selecione o fornecedor"
-                        modoCnpj={true}
-                        onSugerirCategorias={setCategoriasSugeridas}
-                      />
-                    </div>
-
-                    <div>
-                      <SelectComCadastro
-                        label="Categoria"
-                        icone={<Tag className="w-4 h-4 text-purple-600" />}
-                        value={formDataConta.categoria}
-                        onChange={(v) => setFormDataConta({...formDataConta, categoria: v})}
-                        opcoes={categorias}
-                        onCriar={handleCriarCategoria}
-                        placeholder="Selecione a categoria"
-                      />
-                      {categoriasSugeridas.length > 0 && !formDataConta.categoria && (
-                        <div className="mt-2 flex flex-wrap gap-1.5 items-center">
-                          <span className="text-xs text-gray-500">💡 Sugestões:</span>
-                          {categoriasSugeridas.map((cat) => (
-                            <button
-                              key={cat}
-                              type="button"
-                              onClick={async () => {
-                                const existe = categorias.find(c => c.nome.toLowerCase() === cat.toLowerCase());
-                                if (!existe) {
-                                  await handleCriarCategoria(cat);
-                                }
-                                setFormDataConta(prev => ({...prev, categoria: cat}));
-                                setCategoriasSugeridas([]);
-                              }}
-                              className="px-2 py-1 text-xs rounded-full bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
-                            >
-                              {cat}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <FornecedorCategoriaSection
+                    formDataConta={formDataConta}
+                    setFormDataConta={setFormDataConta}
+                    fornecedores={fornecedores}
+                    setFornecedores={setFornecedores}
+                    categorias={categorias}
+                  />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
