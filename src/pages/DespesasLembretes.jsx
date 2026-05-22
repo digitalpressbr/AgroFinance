@@ -690,9 +690,38 @@ ${valor}`
       if (dadosSalvar.editingId) {
         await base44.entities.ContaPagar.update(dadosSalvar.editingId, dadosSalvar.dados);
         toast.success("Conta atualizada com sucesso!");
-      } else if (dadosSalvar.recorrente) {
-        await base44.entities.ContaPagar.create(dadosSalvar.dados);
-        toast.success(`Conta recorrente cadastrada! Total de ${dadosSalvar.dados.parcelas_total} parcelas.`);
+      } else if (dadosSalvar.recorrente && dadosSalvar.dados.parcelas_total > 1) {
+        // Gerar TODAS as parcelas upfront
+        const totalParcelas = parseInt(dadosSalvar.dados.parcelas_total);
+
+        // Helper: adicionar 1 mês (cuidado com fins de mês)
+        const addMonth = (dateStr) => {
+          const [y, m, d] = dateStr.split('-').map(Number);
+          let ny = y, nm = m + 1;
+          if (nm > 12) { nm = 1; ny++; }
+          const lastDay = new Date(ny, nm, 0).getDate();
+          const newDay = Math.min(d, lastDay);
+          return `${ny}-${String(nm).padStart(2, '0')}-${String(newDay).padStart(2, '0')}`;
+        };
+
+        let vencAtual = dadosSalvar.dados.data_vencimento;
+        const todasParcelas = [];
+        for (let n = 1; n <= totalParcelas; n++) {
+          todasParcelas.push({
+            ...dadosSalvar.dados,
+            parcela_atual: n,
+            data_vencimento: vencAtual,
+            pago: false,
+            data_pagamento: null,
+            lembrete_enviado: false,
+            lembrete_antecipado_enviado: false,
+            alerta_duplicidade_enviado: false,
+          });
+          vencAtual = addMonth(vencAtual);
+        }
+
+        await Promise.all(todasParcelas.map(p => base44.entities.ContaPagar.create(p)));
+        toast.success(`${totalParcelas} parcelas criadas!`);
       } else {
         await base44.entities.ContaPagar.create(dadosSalvar.dados);
         toast.success("Conta cadastrada com sucesso!");
@@ -800,66 +829,11 @@ ${valor}`
     if (!dialogMarcarPago) return;
     
     try {
-      const conta = contas.find(c => c.id === dialogMarcarPago);
-      
-      // Marcar como paga
       await base44.entities.ContaPagar.update(dialogMarcarPago, {
         pago: true,
         data_pagamento: new Date().toISOString().split('T')[0]
       });
-      
-      // Se for recorrente e ainda houver parcelas, criar a próxima
-      if (conta.recorrente && conta.parcela_atual < conta.parcelas_total) {
-        const proximaData = new Date(conta.data_vencimento + 'T00:00:00');
-        proximaData.setMonth(proximaData.getMonth() + 1);
-        
-        const proximaConta = {
-          descricao: conta.descricao,
-          valor: conta.valor,
-          data_vencimento: proximaData.toISOString().split('T')[0],
-          dias_antes_avisar: conta.dias_antes_avisar,
-          telefone_contato: conta.telefone_contato,
-          fornecedor: conta.fornecedor,
-          categoria: conta.categoria,
-          observacoes: conta.observacoes,
-          ativo: conta.ativo,
-          recorrente: true,
-          parcelas_total: conta.parcelas_total,
-          parcela_atual: conta.parcela_atual + 1,
-          data_vencimento_final: conta.data_vencimento_final,
-          grupo_recorrencia_id: conta.grupo_recorrencia_id,
-          pago: false,
-          lembrete_enviado: false,
-          lembrete_antecipado_enviado: false,
-          codigo_barras: null,
-          boleto_anexo: null,
-          recibo_anexo: null
-        };
-        
-        // ANTI-DUPLICATA: verificar se a próxima parcela já foi criada (race entre cliques rápidos)
-        const proximaParcelaNum = conta.parcela_atual + 1;
-        let jaExisteProxima = [];
-        try {
-          jaExisteProxima = await base44.entities.ContaPagar.filter({
-            grupo_recorrencia_id: conta.grupo_recorrencia_id,
-            parcela_atual: proximaParcelaNum,
-            ativo: true
-          });
-        } catch (e) {
-          console.warn('[ANTI-DUP] Falha ao consultar duplicata:', e);
-        }
-
-        if (jaExisteProxima && jaExisteProxima.length > 0) {
-          console.warn(`[ANTI-DUP] Próxima parcela ${proximaParcelaNum}/${conta.parcelas_total} do grupo ${conta.grupo_recorrencia_id} já existe. Pulando criação.`);
-          toast.info(`Próxima parcela ${proximaParcelaNum}/${conta.parcelas_total} já existe — não foi recriada.`);
-        } else {
-          await base44.entities.ContaPagar.create(proximaConta);
-          toast.success(`Conta paga! Próxima parcela ${proximaParcelaNum}/${conta.parcelas_total} criada.`);
-        }
-      } else {
-        toast.success("Conta marcada como paga!");
-      }
-      
+      toast.success("Conta marcada como paga!");
       await carregarDados();
     } catch (error) {
       console.error("Erro ao marcar como pago:", error);
