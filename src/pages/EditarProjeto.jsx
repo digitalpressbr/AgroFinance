@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ProjetoFinanciamento } from "@/entities/ProjetoFinanciamento";
-import { Parcela } from "@/entities/Parcela";
-import { addMonths, addYears } from "date-fns";
+import { sincronizarParcelas } from "@/utils/sincronizarParcelas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Edit, Wheat, Loader2, Save } from "lucide-react";
@@ -111,61 +109,7 @@ export default function EditarProjeto() {
   }, [projeto, tabParam]); // Dependências: projeto carregado e tabParam presente
 
   const calcularEGerarParcelas = async (currentProjetoId, dados) => {
-    // 1. Deletar parcelas existentes
-    const parcelasAntigas = await Parcela.filter({ projeto_id: currentProjetoId });
-    for (const parcela of parcelasAntigas) {
-      await Parcela.delete(parcela.id);
-    }
-
-    // 2. Gerar novas parcelas (mesma lógica do NovoProjeto)
-    const { 
-      valor_financiado, 
-      quantidade_parcelas, 
-      tipo_calculo, 
-      cronograma_automatico, // Novo campo para cronograma pré-calculado
-      parcelas_manuais 
-    } = dados;
-    
-    if (!valor_financiado || !quantidade_parcelas) return;
-
-    const numParcelas = parseInt(quantidade_parcelas, 10);
-    const novasParcelas = [];
-
-    if (tipo_calculo === 'manual' && parcelas_manuais) {
-      // Cálculo Manual - usar os valores e datas inseridos pelo usuário
-      for (let i = 0; i < numParcelas; i++) {
-        const parcelaManual = parcelas_manuais[i];
-        if (parcelaManual) {
-          novasParcelas.push({
-            projeto_id: currentProjetoId,
-            numero_parcela: i + 1,
-            data_vencimento: parcelaManual.data_vencimento || new Date().toISOString().split('T')[0],
-            valor_parcela: parseFloat(parcelaManual.valor || 0),
-            status: "pendente",
-            tipo_parcela: "manual" // Adicionando tipo para parcela manual
-          });
-        }
-      }
-    } else if (tipo_calculo === 'automatico' && cronograma_automatico && cronograma_automatico.length > 0) {
-      // Usar cronograma já calculado e passado pelo formulário
-      for (const item of cronograma_automatico) {
-        novasParcelas.push({
-          projeto_id: currentProjetoId,
-          numero_parcela: item.numero,
-          data_vencimento: item.data_vencimento,
-          valor_parcela: parseFloat(item.valor),
-          status: "pendente",
-          tipo_parcela: item.tipo // Tipo de parcela (SAC, PRICE, PÓS-FIXADA)
-        });
-      }
-    }
-    // O antigo cálculo automático direto foi removido daqui,
-    // pois agora o FormularioProjeto é responsável por gerar o cronograma_automatico
-    // e passá-lo para esta função.
-
-    if (novasParcelas.length > 0) {
-      await Parcela.bulkCreate(novasParcelas);
-    }
+    await sincronizarParcelas(currentProjetoId, dados);
   };
 
   const handleSubmit = async (dadosProjeto) => {
