@@ -1,0 +1,67 @@
+{
+  "name": "ProjetoAnexo",
+  "type": "object",
+  "properties": {
+    "projeto_id": {
+      "type": "string",
+      "description": "ID do projeto ao qual este anexo pertence"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "contrato",
+        "art",
+        "geomapa"
+      ],
+      "description": "Categoria do anexo"
+    },
+    "file_id": {
+      "type": "string",
+      "description": "URI do arquivo no storage privado"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Nome original do arquivo"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "Tamanho do arquivo em bytes"
+    },
+    "mime_type": {
+      "type": "string",
+      "description": "Tipo MIME do arquivo"
+    }
+  },
+  "required": [
+    "projeto_id",
+    "categoria",
+    "file_id",
+    "file_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

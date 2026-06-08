@@ -1,0 +1,58 @@
+{
+  "name": "ChecklistTemplate",
+  "type": "object",
+  "properties": {
+    "banco": {
+      "type": "string",
+      "enum": [
+        "banco_do_brasil_private",
+        "banco_do_brasil_varejo",
+        "bradesco",
+        "caixa_economica_federal",
+        "sicoob",
+        "sicredi"
+      ],
+      "description": "Banco ao qual o checklist se aplica"
+    },
+    "tipo_projeto": {
+      "type": "string",
+      "description": "Tipo de projeto/financiamento (ex: Custeio Agr\u00edcola, Investimento, etc.)"
+    },
+    "nome_template": {
+      "type": "string",
+      "description": "Nome descritivo do template de checklist"
+    },
+    "itens_checklist": {
+      "type": "array",
+      "description": "Lista de itens do checklist",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string",
+            "description": "Descri\u00e7\u00e3o do item do checklist"
+          },
+          "obrigatorio": {
+            "type": "boolean",
+            "default": true,
+            "description": "Se o item \u00e9 obrigat\u00f3rio"
+          },
+          "observacao": {
+            "type": "string",
+            "description": "Observa\u00e7\u00f5es sobre o item"
+          }
+        }
+      }
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o template est\u00e1 ativo"
+    }
+  },
+  "required": [
+    "banco",
+    "tipo_projeto",
+    "nome_template"
+  ]
+}

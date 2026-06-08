@@ -1,0 +1,119 @@
+{
+  "name": "ElaboracaoART",
+  "type": "object",
+  "properties": {
+    "contratante_nome": {
+      "type": "string",
+      "description": "Nome do contratante"
+    },
+    "contratante_cpf_cnpj": {
+      "type": "string",
+      "description": "CPF ou CNPJ do contratante"
+    },
+    "contratante_email": {
+      "type": "string",
+      "description": "E-mail do contratante"
+    },
+    "contratante_cep": {
+      "type": "string",
+      "description": "CEP do contratante"
+    },
+    "contratante_endereco": {
+      "type": "string",
+      "description": "Endere\u00e7o do contratante"
+    },
+    "contratante_bairro": {
+      "type": "string",
+      "description": "Bairro do contratante"
+    },
+    "contratante_cidade": {
+      "type": "string",
+      "description": "Cidade do contratante"
+    },
+    "contratante_uf": {
+      "type": "string",
+      "description": "UF do contratante"
+    },
+    "obra_cep": {
+      "type": "string",
+      "description": "CEP da obra"
+    },
+    "obra_cidade": {
+      "type": "string",
+      "description": "Cidade da obra"
+    },
+    "obra_uf": {
+      "type": "string",
+      "description": "UF da obra"
+    },
+    "obra_imovel": {
+      "type": "string",
+      "description": "Nome do im\u00f3vel"
+    },
+    "obra_matricula": {
+      "type": "string",
+      "description": "N\u00famero da matr\u00edcula do im\u00f3vel"
+    },
+    "obra_car": {
+      "type": "string",
+      "description": "N\u00famero do CAR"
+    },
+    "obra_latitude": {
+      "type": "string",
+      "description": "Latitude da obra"
+    },
+    "obra_longitude": {
+      "type": "string",
+      "description": "Longitude da obra"
+    },
+    "obra_area_ha": {
+      "type": "number",
+      "description": "\u00c1rea cultivada em hectares"
+    },
+    "obra_cultura": {
+      "type": "string",
+      "description": "Cultura plantada"
+    },
+    "obra_safra": {
+      "type": "string",
+      "description": "Safra (ex: 2025/2026)"
+    },
+    "obra_proprietario_nome": {
+      "type": "string",
+      "description": "Nome do propriet\u00e1rio do im\u00f3vel"
+    },
+    "obra_proprietario_cpf_cnpj": {
+      "type": "string",
+      "description": "CPF ou CNPJ do propriet\u00e1rio do im\u00f3vel"
+    },
+    "obra_argumentacao": {
+      "type": "string",
+      "description": "Argumenta\u00e7\u00e3o t\u00e9cnica"
+    },
+    "obra_custo_medio": {
+      "type": "number",
+      "description": "Custo m\u00e9dio calculado"
+    },
+    "anexos_kml": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "M\u00faltiplos arquivos KML/KMZ"
+    },
+    "anexos_car_pdf": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "M\u00faltiplos arquivos PDF do CAR"
+    }
+  },
+  "required": [
+    "contratante_nome",
+    "obra_imovel",
+    "obra_area_ha",
+    "obra_cultura",
+    "obra_safra"
+  ]
+}

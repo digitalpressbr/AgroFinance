@@ -1,0 +1,60 @@
+{
+  "name": "ChavePix",
+  "type": "object",
+  "properties": {
+    "chave": {
+      "type": "string",
+      "description": "Chave PIX (CPF, CNPJ, e-mail, telefone ou aleat\u00f3ria)"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "cpf",
+        "cnpj",
+        "email",
+        "telefone",
+        "aleatoria"
+      ],
+      "default": "cpf",
+      "description": "Tipo da chave PIX"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o/apelido da chave"
+    },
+    "ultima_utilizacao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da \u00faltima vez que foi usada"
+    }
+  },
+  "required": [
+    "chave"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

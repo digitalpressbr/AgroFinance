@@ -1,0 +1,74 @@
+{
+  "name": "Parcela",
+  "type": "object",
+  "properties": {
+    "projeto_id": {
+      "type": "string",
+      "description": "ID do projeto de financiamento ao qual esta parcela pertence"
+    },
+    "numero_parcela": {
+      "type": "integer",
+      "description": "N\u00famero sequencial da parcela (ex: 1, 2, 3)"
+    },
+    "data_vencimento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de vencimento da parcela"
+    },
+    "valor_parcela": {
+      "type": "number",
+      "description": "Valor calculado da parcela"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pendente",
+        "paga",
+        "em_atraso"
+      ],
+      "default": "pendente",
+      "description": "Status de pagamento da parcela"
+    },
+    "data_pagamento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data em que a parcela foi marcada como paga"
+    },
+    "tipo_parcela": {
+      "type": "string",
+      "description": "Tipo da parcela: Car\u00eancia, Car\u00eancia (Juros) ou Parcela"
+    }
+  },
+  "required": [
+    "projeto_id",
+    "numero_parcela",
+    "data_vencimento",
+    "valor_parcela"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

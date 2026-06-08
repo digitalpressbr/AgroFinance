@@ -1,0 +1,238 @@
+{
+  "name": "ProjetoFinanciamento",
+  "type": "object",
+  "properties": {
+    "nome_cliente": {
+      "type": "string",
+      "description": "Nome completo do cliente"
+    },
+    "data_protocolo": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do protocolo do projeto"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "em_analise",
+        "parado",
+        "concluido",
+        "cancelado"
+      ],
+      "default": "em_analise",
+      "description": "Status atual do projeto"
+    },
+    "banco": {
+      "type": "string",
+      "enum": [
+        "banco_do_brasil",
+        "caixa",
+        "bradesco",
+        "sicoob",
+        "sicredi",
+        "santander",
+        "outros"
+      ],
+      "description": "Banco respons\u00e1vel pelo financiamento"
+    },
+    "safra": {
+      "type": "string",
+      "description": "Safra do projeto (ex: 2025/2026)"
+    },
+    "numero_contrato": {
+      "type": "string",
+      "description": "N\u00famero do contrato do financiamento"
+    },
+    "item_financiado": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o do item ou projeto financiado"
+    },
+    "fonte_recurso": {
+      "type": "string",
+      "description": "Linha de cr\u00e9dito utilizada"
+    },
+    "taxa_juros": {
+      "type": "number",
+      "description": "Taxa de juros anual em percentual"
+    },
+    "vencimento_final": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de vencimento final do financiamento"
+    },
+    "agencia": {
+      "type": "string",
+      "description": "Localiza\u00e7\u00e3o da ag\u00eancia banc\u00e1ria"
+    },
+    "valor_financiado": {
+      "type": "number",
+      "description": "Valor total financiado"
+    },
+    "valor_receber": {
+      "type": "number",
+      "description": "Valor a receber pelo projeto"
+    },
+    "data_pagamento_astec": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do pagamento ASTEC"
+    },
+    "status_art": {
+      "type": "string",
+      "enum": [
+        "nao_se_aplica",
+        "a_fazer",
+        "feita",
+        "paga"
+      ],
+      "default": "nao_se_aplica",
+      "description": "Status da Anota\u00e7\u00e3o de Responsabilidade T\u00e9cnica (ART)"
+    },
+    "assistencia_tecnica": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o projeto ter\u00e1 assist\u00eancia t\u00e9cnica"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es adicionais sobre o projeto"
+    },
+    "quantidade_parcelas": {
+      "type": "integer",
+      "description": "Quantidade de parcelas do financiamento"
+    },
+    "tipo_pagamento": {
+      "type": "string",
+      "enum": [
+        "mensal",
+        "bimestral",
+        "trimestral",
+        "quadrimestral",
+        "semestral",
+        "anual"
+      ],
+      "description": "Frequ\u00eancia de pagamento das parcelas"
+    },
+    "data_primeira_parcela": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de vencimento da primeira parcela"
+    },
+    "tipo_calculo": {
+      "type": "string",
+      "enum": [
+        "automatico",
+        "manual"
+      ],
+      "description": "Tipo de c\u00e1lculo das parcelas"
+    },
+    "tipo_calculo_auto": {
+      "type": "string",
+      "enum": [
+        "sac",
+        "price",
+        "posfixadas"
+      ],
+      "description": "Sistema de amortiza\u00e7\u00e3o para c\u00e1lculo autom\u00e1tico"
+    },
+    "carencia_periodos": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10,
+      "default": 0,
+      "description": "Quantidade de per\u00edodos de car\u00eancia"
+    },
+    "pagar_juros_carencia": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se true, paga juros durante car\u00eancia; se false, capitaliza"
+    },
+    "periodicidade_manual": {
+      "type": "string",
+      "enum": [
+        "mensal",
+        "anual"
+      ]
+    },
+    "data_base_manual": {
+      "type": "string",
+      "format": "date"
+    },
+    "parcelas_manuais": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "numero": {
+            "type": "integer"
+          },
+          "valor": {
+            "type": "number"
+          },
+          "data_vencimento": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "imoveis_beneficiados": {
+      "type": "array",
+      "description": "Lista de im\u00f3veis beneficiados pelo financiamento",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome_imovel": {
+            "type": "string",
+            "description": "Nome do im\u00f3vel beneficiado"
+          },
+          "matricula": {
+            "type": "string",
+            "description": "N\u00famero da matr\u00edcula do im\u00f3vel"
+          },
+          "area_total_ha": {
+            "type": "number",
+            "description": "\u00c1rea total do im\u00f3vel em hectares"
+          },
+          "area_financiada_ha": {
+            "type": "number",
+            "description": "\u00c1rea financiada em hectares"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "nome_cliente",
+    "data_protocolo",
+    "banco",
+    "item_financiado",
+    "valor_financiado"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

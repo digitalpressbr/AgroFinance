@@ -1,0 +1,46 @@
+{
+  "name": "Contratante",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do contratante"
+    },
+    "cpf_cnpj": {
+      "type": "string",
+      "description": "CPF ou CNPJ do contratante"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail do contratante"
+    },
+    "cep": {
+      "type": "string",
+      "description": "CEP do contratante"
+    },
+    "endereco": {
+      "type": "string",
+      "description": "Endere\u00e7o do contratante"
+    },
+    "bairro": {
+      "type": "string",
+      "description": "Bairro do contratante"
+    },
+    "cidade": {
+      "type": "string",
+      "description": "Cidade do contratante"
+    },
+    "uf": {
+      "type": "string",
+      "description": "UF do contratante"
+    },
+    "ultima_utilizacao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data da \u00faltima vez que o contratante foi usado"
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}

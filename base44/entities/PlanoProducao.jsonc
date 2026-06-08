@@ -1,0 +1,164 @@
+{
+  "name": "PlanoProducao",
+  "type": "object",
+  "properties": {
+    "cliente_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "numero_produto": {
+      "type": "integer",
+      "description": "N\u00famero sequencial do produto no munic\u00edpio"
+    },
+    "municipio_lavoura": {
+      "type": "string",
+      "description": "Munic\u00edpio onde a lavoura est\u00e1 localizada"
+    },
+    "microrregional": {
+      "type": "string",
+      "description": "Microrregional"
+    },
+    "codigo": {
+      "type": "string",
+      "description": "C\u00f3digo do produto"
+    },
+    "atividade": {
+      "type": "string",
+      "description": "Atividade agr\u00edcola"
+    },
+    "ciclo": {
+      "type": "string",
+      "description": "Ciclo da cultura"
+    },
+    "periodo_comercializacao": {
+      "type": "string",
+      "description": "Per\u00edodo de comercializa\u00e7\u00e3o"
+    },
+    "produto_principal": {
+      "type": "string",
+      "description": "Produto principal cultivado"
+    },
+    "ultimo_ano": {
+      "type": "integer",
+      "description": "\u00daltimo ano de cultivo"
+    },
+    "sistema_producao_ultimo": {
+      "type": "string",
+      "description": "Sistema de produ\u00e7\u00e3o do \u00faltimo ano (N\u00ba do Empre no RTA)"
+    },
+    "inicio_plantio_ultimo": {
+      "type": "string",
+      "description": "In\u00edcio do plantio no \u00faltimo ano (MM/AAAA)"
+    },
+    "inicio_colheita_ultimo": {
+      "type": "string",
+      "description": "In\u00edcio da colheita no \u00faltimo ano (MM/AAAA)"
+    },
+    "produtividade_obtida": {
+      "type": "number",
+      "description": "Produtividade obtida no \u00faltimo ano"
+    },
+    "unidade_produtividade_obtida": {
+      "type": "string",
+      "enum": [
+        "Kg/ha",
+        "T/ha"
+      ],
+      "default": "Kg/ha",
+      "description": "Unidade de medida da produtividade obtida"
+    },
+    "area_plantada": {
+      "type": "number",
+      "description": "\u00c1rea plantada no \u00faltimo ano em hectares"
+    },
+    "preco_unitario_obtido": {
+      "type": "number",
+      "description": "Pre\u00e7o unit\u00e1rio obtido no \u00faltimo ano"
+    },
+    "unidade_preco_obtido": {
+      "type": "string",
+      "enum": [
+        "R$/Kg",
+        "R$/T"
+      ],
+      "default": "R$/Kg",
+      "description": "Unidade de medida do pre\u00e7o obtido"
+    },
+    "ano_previsto": {
+      "type": "integer",
+      "description": "Ano previsto para o cultivo"
+    },
+    "sistema_producao_previsto": {
+      "type": "string",
+      "description": "Sistema de produ\u00e7\u00e3o previsto (N\u00ba do Empre no RTA)"
+    },
+    "inicio_plantio_previsto": {
+      "type": "string",
+      "description": "In\u00edcio do plantio previsto (MM/AAAA)"
+    },
+    "inicio_colheita_previsto": {
+      "type": "string",
+      "description": "In\u00edcio da colheita prevista (MM/AAAA)"
+    },
+    "produtividade_prevista": {
+      "type": "number",
+      "description": "Produtividade prevista"
+    },
+    "unidade_produtividade_prevista": {
+      "type": "string",
+      "enum": [
+        "Kg/ha",
+        "T/ha"
+      ],
+      "default": "Kg/ha",
+      "description": "Unidade de medida da produtividade prevista"
+    },
+    "area_prevista": {
+      "type": "number",
+      "description": "\u00c1rea a plantar em hectares"
+    },
+    "preco_unitario_previsto": {
+      "type": "number",
+      "description": "Pre\u00e7o unit\u00e1rio previsto"
+    },
+    "unidade_preco_previsto": {
+      "type": "string",
+      "enum": [
+        "R$/Kg",
+        "R$/T"
+      ],
+      "default": "R$/Kg",
+      "description": "Unidade de medida do pre\u00e7o previsto"
+    },
+    "imoveis_ids": {
+      "type": "array",
+      "description": "IDs dos im\u00f3veis onde a lavoura est\u00e1 localizada",
+      "items": {
+        "type": "string"
+      }
+    },
+    "imoveis_com_area": {
+      "type": "array",
+      "description": "Im\u00f3veis com \u00e1rea utilizada para esta produ\u00e7\u00e3o",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "ID do im\u00f3vel"
+          },
+          "area_utilizada": {
+            "type": "number",
+            "description": "\u00c1rea utilizada neste im\u00f3vel em hectares"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "cliente_id",
+    "numero_produto",
+    "municipio_lavoura",
+    "area_prevista"
+  ]
+}

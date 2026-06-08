@@ -1,0 +1,115 @@
+{
+  "name": "Documento",
+  "type": "object",
+  "properties": {
+    "nome_documento": {
+      "type": "string",
+      "description": "Nome do documento"
+    },
+    "tipo_documento": {
+      "type": "string",
+      "enum": [
+        "Certid\u00e3o",
+        "CCIR",
+        "CIB",
+        "ITR",
+        "CAR - Recibo",
+        "CAR - Demonstrativo",
+        "Contrato de Arrendamento",
+        "Aditivo",
+        "Carta de Anu\u00eancia",
+        "Laudo T\u00e9cnico",
+        "ART",
+        "Valida\u00e7\u00e3o de Assinatura",
+        "Outro"
+      ],
+      "description": "Tipo do documento"
+    },
+    "cliente_id": {
+      "type": "string",
+      "description": "ID do cliente associado"
+    },
+    "imovel_id": {
+      "type": "string",
+      "description": "ID do im\u00f3vel associado"
+    },
+    "data_emissao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de emiss\u00e3o do documento"
+    },
+    "data_vencimento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de vencimento do documento"
+    },
+    "data_inicio_contrato": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de in\u00edcio do contrato (para Contrato de Arrendamento e Aditivo)"
+    },
+    "data_fim_contrato": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de fim/vencimento do contrato (para Contrato de Arrendamento e Aditivo)"
+    },
+    "exercicio": {
+      "type": "string",
+      "description": "Ano do exerc\u00edcio (para CCIR, ex: 2024, 2025)"
+    },
+    "status_documento": {
+      "type": "string",
+      "enum": [
+        "Vigente",
+        "Vencendo",
+        "Vencido",
+        "Arquivado",
+        "Rascunho"
+      ],
+      "default": "Vigente",
+      "description": "Status atual do documento"
+    },
+    "arquivo_pdf": {
+      "type": "string",
+      "description": "URL do arquivo PDF"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es adicionais"
+    },
+    "dados_extracao_ia": {
+      "type": "string",
+      "description": "JSON com dados extra\u00eddos pela IA"
+    }
+  },
+  "required": [
+    "nome_documento",
+    "tipo_documento"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

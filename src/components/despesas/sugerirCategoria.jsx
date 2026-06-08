@@ -18,7 +18,7 @@ export function sugerirCategoria(fornecedorObj, descricao) {
 
   // c) Família/pessoal → Outros + privado
   if (/(maple bear|vértice bilíngue|apae|mútua)/.test(nome)) {
-    return { categoria: 'Outros', privado: true, motivo: 'Despesa familiar/pessoal' };
+    return { categoria: 'Outros', privado: false, motivo: 'Despesa familiar/pessoal' };
   }
 
   // d) Bancos (cartões pessoais) → Outros + privado

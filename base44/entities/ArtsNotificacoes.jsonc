@@ -1,0 +1,364 @@
+{
+  "name": "ArtsNotificacoes",
+  "type": "object",
+  "properties": {
+    "orgId": {
+      "type": "string",
+      "description": "ID da organiza\u00e7\u00e3o do usu\u00e1rio que criou o servi\u00e7o"
+    },
+    "assigneeId": {
+      "type": "string",
+      "description": "ID do usu\u00e1rio respons\u00e1vel pelo servi\u00e7o"
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array de IDs de usu\u00e1rios com acesso direto ao servi\u00e7o"
+    },
+    "publishedAt": {
+      "type": "number",
+      "description": "Timestamp de quando o servi\u00e7o foi criado (para ordena\u00e7\u00e3o)"
+    },
+    "numero_servico": {
+      "type": "integer",
+      "description": "N\u00famero sequencial do servi\u00e7o (gerado automaticamente)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "aberto",
+        "aguardando_cliente",
+        "aguardando_orgao",
+        "concluido",
+        "cancelado"
+      ],
+      "default": "aberto"
+    },
+    "prioridade": {
+      "type": "string",
+      "enum": [
+        "baixa",
+        "media",
+        "alta"
+      ],
+      "description": "N\u00edvel de prioridade do servi\u00e7o"
+    },
+    "responsavel_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio do sistema que abriu o servi\u00e7o"
+    },
+    "atribuido_para_nome": {
+      "type": "string",
+      "description": "Nome do respons\u00e1vel para quem o servi\u00e7o foi atribu\u00eddo"
+    },
+    "atribuido_para_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio para quem o servi\u00e7o foi atribu\u00eddo"
+    },
+    "prazo": {
+      "type": "string",
+      "format": "date"
+    },
+    "numero_notificacao": {
+      "type": "string"
+    },
+    "data_notificacao": {
+      "type": "string",
+      "format": "date"
+    },
+    "gerou_auto_infracao": {
+      "type": "boolean",
+      "default": false
+    },
+    "cliente_nome": {
+      "type": "string"
+    },
+    "cliente_cpf_cnpj": {
+      "type": "string"
+    },
+    "contratante_empreendimento_nome": {
+      "type": "string"
+    },
+    "contratante_empreendimento_cpf_cnpj": {
+      "type": "string"
+    },
+    "cliente_e_contratante_iguais": {
+      "type": "boolean",
+      "default": false
+    },
+    "atividade_notificada": {
+      "type": "string",
+      "enum": [
+        "soja_safra_verao",
+        "milho_safrinha",
+        "sorgo_safrinha",
+        "cana_de_acucar",
+        "forrageiras"
+      ]
+    },
+    "tipo_servico_notificado": {
+      "type": "string",
+      "enum": [
+        "so_assistencia",
+        "so_projeto",
+        "projeto_e_assistencia"
+      ]
+    },
+    "area_notificada_ha": {
+      "type": "number"
+    },
+    "safra_notificada": {
+      "type": "string"
+    },
+    "contrato_notificado": {
+      "type": "string",
+      "description": "N\u00famero do contrato da atividade notificada"
+    },
+    "real_igual_notificada": {
+      "type": "boolean",
+      "default": true
+    },
+    "atividade_real": {
+      "type": "string",
+      "enum": [
+        "soja_safra_verao",
+        "milho_safrinha",
+        "sorgo_safrinha",
+        "cana_de_acucar",
+        "forrageiras"
+      ]
+    },
+    "tipo_servico_real": {
+      "type": "string",
+      "enum": [
+        "so_assistencia",
+        "so_projeto",
+        "projeto_e_assistencia"
+      ]
+    },
+    "area_real_ha": {
+      "type": "number"
+    },
+    "safra_real": {
+      "type": "string"
+    },
+    "contrato_real": {
+      "type": "string",
+      "description": "N\u00famero do contrato da atividade real"
+    },
+    "imoveis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nome_imovel": {
+            "type": "string"
+          },
+          "municipio": {
+            "type": "string"
+          },
+          "matricula": {
+            "type": "string"
+          },
+          "car_numero": {
+            "type": "string"
+          },
+          "area_cultivada": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "art_feita": {
+      "type": "boolean",
+      "default": false
+    },
+    "qtd_arts": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "arts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "numero": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string",
+            "format": "date"
+          },
+          "valor": {
+            "type": "number"
+          },
+          "paga": {
+            "type": "boolean",
+            "default": false
+          },
+          "data_pagamento": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "numero",
+          "data",
+          "valor"
+        ]
+      }
+    },
+    "anexo_notificacao": {
+      "type": "object",
+      "properties": {
+        "file_id": {
+          "type": "string"
+        },
+        "file_name": {
+          "type": "string"
+        },
+        "file_size": {
+          "type": "number"
+        },
+        "mime_type": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "uploaded_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "anexos_arts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file_id": {
+            "type": "string"
+          },
+          "file_name": {
+            "type": "string"
+          },
+          "file_size": {
+            "type": "number"
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "anexos_kml": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file_id": {
+            "type": "string"
+          },
+          "file_name": {
+            "type": "string"
+          },
+          "file_size": {
+            "type": "number"
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "anexos_outros": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file_id": {
+            "type": "string"
+          },
+          "file_name": {
+            "type": "string"
+          },
+          "file_size": {
+            "type": "number"
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "necessita_defesa": {
+      "type": "boolean",
+      "default": false
+    },
+    "modelo_defesa": {
+      "type": "string",
+      "enum": [
+        "nenhum",
+        "defesa_simples",
+        "defesa_com_divergencia"
+      ],
+      "description": "Modelo de texto para a argumenta\u00e7\u00e3o da defesa"
+    },
+    "argumentacao_defesa": {
+      "type": "string"
+    },
+    "defesa_apresentada": {
+      "type": "boolean",
+      "default": false
+    },
+    "data_defesa": {
+      "type": "string",
+      "format": "date"
+    },
+    "processo_numero": {
+      "type": "string"
+    },
+    "observacoes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "numero_notificacao",
+    "data_notificacao",
+    "cliente_nome",
+    "atribuido_para_nome",
+    "atividade_notificada",
+    "tipo_servico_notificado",
+    "area_notificada_ha",
+    "safra_notificada"
+  ],
+  "rls": {
+    "read": true,
+    "write": true
+  }
+}
