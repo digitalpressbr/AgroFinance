@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -105,7 +107,12 @@ const formInicial = {
   parcelas_total: "",
 };
 
+const EMAIL_AUTORIZADO = "ro_agronomo@hotmail.com";
+
 export default function DespesasPrivadas() {
+  const navigate = useNavigate();
+  const [authChecando, setAuthChecando] = useState(true);
+  const [autorizado, setAutorizado] = useState(false);
   const [autenticado, setAutenticado] = useState(false);
   const [contas, setContas] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -122,6 +129,29 @@ export default function DespesasPrivadas() {
   const [formChavePix, setFormChavePix] = useState({ descricao: "", chave: "", tipo: "cpf" });
   const [editingChavePix, setEditingChavePix] = useState(null);
   const [gruposPixExpandidos, setGruposPixExpandidos] = useState({});
+
+  useEffect(() => {
+    let ativo = true;
+    (async () => {
+      try {
+        const me = await base44.auth.me();
+        if (!ativo) return;
+        if (me?.email === EMAIL_AUTORIZADO) {
+          setAutorizado(true);
+        } else {
+          setAutorizado(false);
+          navigate(createPageUrl("Dashboard"), { replace: true });
+        }
+      } catch {
+        if (!ativo) return;
+        setAutorizado(false);
+        navigate(createPageUrl("Dashboard"), { replace: true });
+      } finally {
+        if (ativo) setAuthChecando(false);
+      }
+    })();
+    return () => { ativo = false; };
+  }, [navigate]);
 
   useEffect(() => {
     if (autenticado) {
@@ -330,6 +360,14 @@ export default function DespesasPrivadas() {
       setCarregandoGrupos(false);
     }
   };
+
+  if (authChecando || !autorizado) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!autenticado) {
     return <PinModal onSuccess={() => setAutenticado(true)} />;
