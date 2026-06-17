@@ -162,49 +162,7 @@
     "data_vencimento"
   ],
   "rls": {
-    "read": {
-      "$or": [
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "email": {
-              "$in": [
-                "contato@cerradoconsultoria.agr.br",
-                "rodrigo@cerradoconsultoria.agr.br"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "write": {
-      "$or": [
-        {
-          "created_by": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "email": {
-              "$in": [
-                "contato@cerradoconsultoria.agr.br",
-                "rodrigo@cerradoconsultoria.agr.br"
-              ]
-            }
-          }
-        }
-      ]
-    }
+    "read": true,
+    "write": true
   }
 }
