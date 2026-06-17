@@ -24,8 +24,13 @@ import {
   Wallet,
   Bell,
   FolderCheck,
-  MessageCircle
+  MessageCircle,
+  Crown,
+  LogOut,
+  Lock
 } from "lucide-react";
+import usePerfil from "./components/perfil/usePerfil";
+import ModalAdminPin from "./components/perfil/ModalAdminPin";
 import {
   Sidebar,
   SidebarContent,
@@ -191,6 +196,8 @@ export default function Layout({ children, currentPageName }) {
     "Gestão Documental": true,
     "Financiamentos": true
   });
+  const { isAdmin, entrarAdmin, sairAdmin } = usePerfil();
+  const [showAdminPin, setShowAdminPin] = useState(false);
 
   // Proteção global contra erros fatais - executar uma única vez no boot
   useEffect(() => {
@@ -522,6 +529,33 @@ export default function Layout({ children, currentPageName }) {
 
           <SidebarFooter className="border-t p-4">
             <div className="flex flex-col gap-2">
+              {isAdmin ? (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-center gap-1.5 px-2 py-1 rounded-md bg-amber-50 border border-amber-200">
+                    <Crown className="h-3.5 w-3.5 text-amber-600" />
+                    <span className="text-xs font-semibold text-amber-700">Admin</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2 text-amber-700 border-amber-200 hover:bg-amber-50"
+                    onClick={sairAdmin}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sair do Admin</span>
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start gap-2 text-gray-500 hover:text-gray-800"
+                  onClick={() => setShowAdminPin(true)}
+                >
+                  <Lock className="h-3.5 w-3.5" />
+                  <span className="text-xs">Modo Admin</span>
+                </Button>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="w-full justify-start gap-2">
@@ -561,6 +595,14 @@ export default function Layout({ children, currentPageName }) {
         </main>
       </div>
       <PwaUpdateNotification />
+      <ModalAdminPin
+        open={showAdminPin}
+        onOpenChange={setShowAdminPin}
+        onSucesso={() => {
+          setShowAdminPin(false);
+          entrarAdmin();
+        }}
+      />
     </SidebarProvider>
   );
 }
