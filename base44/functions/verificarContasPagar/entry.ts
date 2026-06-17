@@ -145,8 +145,10 @@ Deno.serve(async (req) => {
 
     console.log('Iniciando verificação de contas a pagar...');
 
-    // === AUTO-MARCAR CONTAS PAGAS (apenas modo manhã) ===
-    if (modoNoDia) {
+    // === AUTO-MARCAR CONTAS PAGAS (apenas modo tarde - 16h BRT) ===
+    // Movido da manhã (6h) para a tarde (16h) para dar tempo do escritório
+    // marcar manualmente e anexar recibo antes do robô agir.
+    if (modoAntecipado) {
       try {
         await executarAutoMarcacao(base44, agoraBrasilia, GRUPO_PADRAO);
       } catch (e) {
