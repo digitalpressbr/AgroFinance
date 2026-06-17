@@ -19,6 +19,7 @@ import ContaCard from "../components/despesas/ContaCard";
 import { downloadAnexoComNome } from "../components/despesas/downloadAnexo";
 import FornecedorCategoriaSection from "../components/despesas/FornecedorCategoriaSection";
 import FormularioLembrete from "../components/despesas/FormularioLembrete";
+import usePerfil from "@/components/perfil/usePerfil";
 import { Building2, Tag } from "lucide-react";
 import {
   AlertDialog,
@@ -39,6 +40,7 @@ import {
 } from "@/components/ui/select";
 
 export default function DespesasLembretes() {
+  const { isAdmin } = usePerfil();
   const [contas, setContas] = useState([]);
   const [lembretes, setLembretes] = useState([]);
   const [chavesPix, setChavesPix] = useState([]);
@@ -1060,8 +1062,8 @@ ${valor}`
     return `${diasRestantes} dias`;
   };
 
-  const contasAtivas = contas.filter(c => !c.pago && c.ativo !== false && !c.privado);
-  const contasPagas = contas.filter(c => c.pago && !c.privado);
+  const contasAtivas = contas.filter(c => !c.pago && c.ativo !== false && (isAdmin || !c.privado));
+  const contasPagas = contas.filter(c => c.pago && (isAdmin || !c.privado));
 
   // Opções únicas para filtros
   const categoriasUnicas = [...new Set(contasAtivas.map(c => c.categoria).filter(Boolean))].sort();
@@ -1548,7 +1550,7 @@ ${valor}`
         </div>
       </div>
 
-      {!isLoading && (contasAtivas.length > 0 || contasPagas.length > 0) && (
+      {isAdmin && !isLoading && (contasAtivas.length > 0 || contasPagas.length > 0) && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="border-blue-200 bg-blue-50"><CardContent className="p-4"><div className="flex items-center justify-between mb-1"><p className="text-xs text-blue-600 font-medium uppercase">Total a pagar no mês</p><DollarSign className="w-4 h-4 text-blue-600" /></div><p className="text-2xl font-bold text-blue-800">R$ {totalMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p><p className="text-xs text-blue-600 mt-1">{contasDoMes.length} conta(s)</p></CardContent></Card>
           <Card className="border-green-200 bg-green-50"><CardContent className="p-4"><div className="flex items-center justify-between mb-1"><p className="text-xs text-green-700 font-medium uppercase">Total já pago no mês</p><Check className="w-4 h-4 text-green-700" /></div><p className="text-2xl font-bold text-green-800">R$ {totalPagoMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p><p className="text-xs text-green-700 mt-1">{contasPagasDoMes.length} conta(s)</p></CardContent></Card>
