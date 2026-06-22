@@ -82,6 +82,38 @@ const gerarRelatorioPDF = (cliente, safra, culturas, getCulturaLabel) => {
   doc.save('Relatorio_' + cliente.replace(/[^a-zA-Z0-9]/g, '_') + '_' + safra.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf');
 };
 
+const baixarArquivoDireto = async (file) => {
+  try {
+    const fileUrl = file?.url || file?.file_id;
+    const fileName = file?.file_name || file?.name || 'arquivo';
+    if (!fileUrl || fileUrl.startsWith('blob:')) {
+      alert('⚠️ Este arquivo foi anexado anteriormente e não pode ser baixado.\n\nAbra em "Editar", remova o anexo e adicione novamente.');
+      return;
+    }
+    const response = await fetch(fileUrl);
+    if (!response.ok) throw new Error('Erro ao buscar arquivo');
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error('Erro ao baixar arquivo:', error);
+    alert('Erro ao baixar arquivo. Verifique se o arquivo ainda existe no servidor.');
+  }
+};
+
+const baixarTodosArquivos = async (arquivos) => {
+  for (const file of arquivos) {
+    await baixarArquivoDireto(file);
+    await new Promise(r => setTimeout(r, 300));
+  }
+};
+
 const CULTURAS_OPTIONS = [
   { value: "soja_sequeiro", label: "Soja Sequeiro" },
   { value: "milho_safrinha", label: "Milho Safrinha" },
@@ -1143,16 +1175,40 @@ const CulturaDetalhes = ({ cultura, arts, onEditarART, onExcluirART, getCulturaL
                   {(art.anexos_kml?.length > 0 || art.anexos_car_pdf?.length > 0) && (
                     <div className="flex gap-1.5 pt-1">
                       {art.anexos_kml?.length > 0 && (
-                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-sky-50 border border-sky-100 rounded text-xs text-sky-600">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (art.anexos_kml.length === 1) {
+                              baixarArquivoDireto(art.anexos_kml[0]);
+                            } else {
+                              baixarTodosArquivos(art.anexos_kml);
+                            }
+                          }}
+                          title={art.anexos_kml.length === 1 ? `Baixar ${art.anexos_kml[0].file_name || 'KML'}` : `Baixar ${art.anexos_kml.length} arquivos KML`}
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-sky-50 border border-sky-100 rounded text-xs text-sky-600 hover:bg-sky-100 hover:border-sky-300 cursor-pointer transition-colors"
+                        >
                           <Map className="w-3 h-3" />
                           {art.anexos_kml.length}
-                        </div>
+                        </button>
                       )}
                       {art.anexos_car_pdf?.length > 0 && (
-                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-rose-50 border border-rose-100 rounded text-xs text-rose-600">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (art.anexos_car_pdf.length === 1) {
+                              baixarArquivoDireto(art.anexos_car_pdf[0]);
+                            } else {
+                              baixarTodosArquivos(art.anexos_car_pdf);
+                            }
+                          }}
+                          title={art.anexos_car_pdf.length === 1 ? `Baixar ${art.anexos_car_pdf[0].file_name || 'PDF'}` : `Baixar ${art.anexos_car_pdf.length} arquivos PDF`}
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-rose-50 border border-rose-100 rounded text-xs text-rose-600 hover:bg-rose-100 hover:border-rose-300 cursor-pointer transition-colors"
+                        >
                           <FileText className="w-3 h-3" />
                           {art.anexos_car_pdf.length}
-                        </div>
+                        </button>
                       )}
                     </div>
                   )}
