@@ -42,7 +42,8 @@ export default function OutrosServicos() {
   const carregarClientes = async () => {
     try {
       const data = await base44.entities.Cliente.list("nome");
-      setClientes(data || []);
+      const ordenados = [...(data || [])].sort((a, b) => (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' }));
+      setClientes(ordenados);
     } catch (error) {
       console.error("Erro ao carregar clientes:", error);
     }

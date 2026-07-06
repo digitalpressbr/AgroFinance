@@ -912,7 +912,7 @@ export default function Vencimentos() {
   };
 
   const anos = [...new Set(parcelas.map(p => new Date(p.data_vencimento).getFullYear()))].sort();
-  const clientesDisponiveis = [...new Set(projetos.map(p => p.nome_cliente))].filter(Boolean).sort();
+  const clientesDisponiveis = [...new Set(projetos.map(p => p.nome_cliente))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
   const bancosDisponiveis = [...new Set(projetos.map(p => p.banco))].filter(Boolean);
 
   const toggleCliente = (cliente) => {

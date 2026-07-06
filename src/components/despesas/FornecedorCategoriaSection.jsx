@@ -45,7 +45,7 @@ export default function FornecedorCategoriaSection({
             value={formDataConta.fornecedor}
             onChange={handleFornecedorChange}
             fornecedores={fornecedores}
-            onFornecedorCriado={(novo) => setFornecedores(prev => [...prev, novo].sort((a, b) => a.nome.localeCompare(b.nome)))}
+            onFornecedorCriado={(novo) => setFornecedores(prev => [...prev, novo].sort((a, b) => (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' })))}
           />
         </div>
 
@@ -75,7 +75,7 @@ export default function FornecedorCategoriaSection({
               <SelectValue placeholder="Selecione a categoria" />
             </SelectTrigger>
             <SelectContent>
-              {categorias.filter(c => c.ativo !== false).sort((a, b) => a.nome.localeCompare(b.nome)).map(c => (
+              {categorias.filter(c => c.ativo !== false).sort((a, b) => (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' })).map(c => (
                 <SelectItem key={c.id || c.nome} value={c.nome}>{c.nome}</SelectItem>
               ))}
             </SelectContent>

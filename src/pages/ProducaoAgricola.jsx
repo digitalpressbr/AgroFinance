@@ -179,7 +179,8 @@ export default function ProducaoAgricola() {
   const loadClientes = async () => {
     try {
       setIsLoadingClientes(true);
-      const data = await base44.entities.Cliente.list("nome");
+      const dataRaw = await base44.entities.Cliente.list("nome");
+      const data = [...(dataRaw || [])].sort((a, b) => (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' }));
       setClientes(data);
     } catch (error) {
       console.error("Erro ao carregar clientes:", error);

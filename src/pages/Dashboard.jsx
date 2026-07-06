@@ -106,7 +106,7 @@ export default function Dashboard() {
 
   const exportarClientesPDF = () => {
     const clientesOrdenados = [...clientes].sort((a, b) => 
-      a.nome.localeCompare(b.nome)
+      (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' })
     );
 
     const conteudo = `

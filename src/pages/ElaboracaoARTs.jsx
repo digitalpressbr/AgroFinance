@@ -61,7 +61,7 @@ const gerarRelatorioPDF = (cliente, safra, culturas, getCulturaLabel) => {
   doc.text(new Date().toLocaleDateString('pt-BR'), margin + 18, y);
   y += 10;
   let areaTotalGeral = 0;
-  Object.entries(culturas).sort(([a], [b]) => a.localeCompare(b)).forEach(([cultura, arts]) => {
+  Object.entries(culturas).sort(([a], [b]) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' })).forEach(([cultura, arts]) => {
     const culturaLabel = getCulturaLabel ? getCulturaLabel(cultura) : cultura;
     let areaSubtotal = 0;
     const tableData = arts.map((art, idx) => {
@@ -1286,7 +1286,7 @@ const SafraCard = ({ safra, culturas, onEditarART, onExcluirART, getCulturaLabel
 
       {expandido && (
         <div className="border-t border-blue-200 bg-white/50 p-3 space-y-3">
-          {Object.entries(culturas).sort(([a], [b]) => a.localeCompare(b)).map(([cultura, arts]) => (
+          {Object.entries(culturas).sort(([a], [b]) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' })).map(([cultura, arts]) => (
             <CulturaDetalhes
               key={cultura}
               cultura={cultura}
@@ -1532,7 +1532,7 @@ export default function ElaboracaoARTs() {
   }, {});
 
   // Ordenar clientes alfabeticamente
-  const clientesOrdenados = Object.keys(hierarquia).sort((a, b) => a.localeCompare(b));
+  const clientesOrdenados = Object.keys(hierarquia).sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
 
   const getCulturaLabel = (value) => {
     return CULTURAS_OPTIONS.find(c => c.value === value)?.label || value;

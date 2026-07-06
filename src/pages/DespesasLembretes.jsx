@@ -143,12 +143,12 @@ export default function DespesasLembretes() {
       ? { nome: dados, ativo: true }
       : { ...dados, ativo: true };
     const novo = await base44.entities.Fornecedor.create(payload);
-    setFornecedores(prev => [...prev, novo].sort((a, b) => a.nome.localeCompare(b.nome)));
+    setFornecedores(prev => [...prev, novo].sort((a, b) => (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' })));
   };
 
   const handleCriarCategoria = async (nome) => {
     const nova = await base44.entities.Categoria.create({ nome, ativo: true });
-    setCategorias(prev => [...prev, nova].sort((a, b) => a.nome.localeCompare(b.nome)));
+    setCategorias(prev => [...prev, nova].sort((a, b) => (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' })));
   };
 
   const moverLembretesVencidosAutomaticamente = async () => {
@@ -325,10 +325,11 @@ export default function DespesasLembretes() {
     const fornecedoresUnicos = [...new Set(contas.map(c => c.fornecedor).filter(Boolean))];
     const categoriasUnicas = [...new Set(contas.map(c => c.categoria).filter(Boolean))];
     
+    const cmpPt = (a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' });
     setSugestoes({
-      descricoes: [...new Set([...descricoesContas, ...descricoesLembretes])].sort(),
-      fornecedores: fornecedoresUnicos.sort(),
-      categorias: categoriasUnicas.sort()
+      descricoes: [...new Set([...descricoesContas, ...descricoesLembretes])].sort(cmpPt),
+      fornecedores: fornecedoresUnicos.sort(cmpPt),
+      categorias: categoriasUnicas.sort(cmpPt)
     });
   }, [contas, lembretes]);
 
@@ -1066,8 +1067,8 @@ ${valor}`
   const contasPagas = contas.filter(c => c.pago && (isAdmin || !c.privado));
 
   // Opções únicas para filtros
-  const categoriasUnicas = [...new Set(contasAtivas.map(c => c.categoria).filter(Boolean))].sort();
-  const fornecedoresUnicos = [...new Set(contasAtivas.map(c => c.fornecedor).filter(Boolean))].sort();
+  const categoriasUnicas = [...new Set(contasAtivas.map(c => c.categoria).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
+  const fornecedoresUnicos = [...new Set(contasAtivas.map(c => c.fornecedor).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
 
   // Contas ativas filtradas
   const contasAtivasFiltradas = contasAtivas.filter(c => {

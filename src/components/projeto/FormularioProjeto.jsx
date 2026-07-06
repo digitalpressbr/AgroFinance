@@ -372,7 +372,8 @@ export default function FormularioProjeto({ onSubmit, isLoading, projeto = null 
       try {
         setCarregandoClientes(true);
         const data = await base44.entities.Cliente.list("nome");
-        setClientes(data || []);
+        const ordenados = [...(data || [])].sort((a, b) => (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' }));
+        setClientes(ordenados);
       } catch (error) {
         console.error("Erro ao carregar clientes:", error);
         setClientes([]);

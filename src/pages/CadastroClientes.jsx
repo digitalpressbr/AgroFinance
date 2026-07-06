@@ -15,12 +15,8 @@ export default function CadastroClientes() {
 
   const sortClientesAlphabetically = (clientesData) => {
     return [...clientesData].sort((a, b) => {
-      const nomeA = (a.nome || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const nomeB = (b.nome || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      
-      if (nomeA < nomeB) return -1;
-      if (nomeA > nomeB) return 1;
-      
+      const cmp = (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' });
+      if (cmp !== 0) return cmp;
       const cpfA = (a.cpf || '').replace(/\D/g, '');
       const cpfB = (b.cpf || '').replace(/\D/g, '');
       return cpfA.localeCompare(cpfB);

@@ -38,7 +38,8 @@ export default function CadastroImoveis() {
           base44.entities.Imovel.list("-created_date", 500)
         ]);
         if (isMounted) {
-          setClientes(clientesData || []);
+          const clientesOrdenados = [...(clientesData || [])].sort((a, b) => (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' }));
+          setClientes(clientesOrdenados);
           setTodosImoveis(imoveisData || []);
         }
       } catch (error) {

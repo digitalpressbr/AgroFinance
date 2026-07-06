@@ -50,7 +50,7 @@ export default function FornecedorCombobox({ value, onChange, fornecedores, onFo
   const [salvando, setSalvando] = useState(false);
 
   const ordenados = useMemo(() => {
-    return [...(fornecedores || [])].sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+    return [...(fornecedores || [])].sort((a, b) => (a.nome || '').localeCompare((b.nome || ''), 'pt-BR', { sensitivity: 'base' }));
   }, [fornecedores]);
 
   const filtrados = useMemo(() => {

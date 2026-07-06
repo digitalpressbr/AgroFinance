@@ -190,7 +190,7 @@ export default function AreasFinanciaveis() {
     });
     
     return Object.values(resumo).sort((a, b) => 
-      a.municipio.localeCompare(b.municipio)
+      (a.municipio || '').localeCompare((b.municipio || ''), 'pt-BR', { sensitivity: 'base' })
     );
   }, [imoveisFiltrados]);
 

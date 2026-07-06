@@ -200,7 +200,7 @@ export default function TodosProjetos() {
   };
 
   const imprimirRelatorio = () => {
-    const projetosOrdenados = [...projetosFiltrados].sort((a, b) => a.nome_cliente.localeCompare(b.nome_cliente));
+    const projetosOrdenados = [...projetosFiltrados].sort((a, b) => (a.nome_cliente || '').localeCompare((b.nome_cliente || ''), 'pt-BR', { sensitivity: 'base' }));
     const bancoNomes = {
       banco_do_brasil: "Banco do Brasil",
       caixa: "Caixa Econômica",
