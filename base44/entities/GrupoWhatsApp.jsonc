@@ -24,5 +24,51 @@
   "required": [
     "grupo_id",
     "nome"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "email": "contato@cerradoconsultoria.agr.br"
+          }
+        },
+        {
+          "user_condition": {
+            "email": "rodrigo@cerradoconsultoria.agr.br"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "email": "contato@cerradoconsultoria.agr.br"
+          }
+        },
+        {
+          "user_condition": {
+            "email": "rodrigo@cerradoconsultoria.agr.br"
+          }
+        }
+      ]
+    }
+  }
 }
