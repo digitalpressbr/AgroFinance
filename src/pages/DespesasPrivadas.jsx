@@ -15,6 +15,7 @@ import { Plus, Edit, Trash2, Lock, Calendar as CalendarIcon, Check, DollarSign, 
 import { toast, Toaster } from "sonner";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import usePerfil from "@/components/perfil/usePerfil";
 
 const PIN_CORRETO = "996138";
 const GRUPO_ID = "120363424659062662@g.us";
@@ -107,12 +108,9 @@ const formInicial = {
   parcelas_total: "",
 };
 
-const EMAIL_AUTORIZADO = "ro_agronomo@hotmail.com";
-
 export default function DespesasPrivadas() {
   const navigate = useNavigate();
-  const [authChecando, setAuthChecando] = useState(true);
-  const [autorizado, setAutorizado] = useState(false);
+  const { isAdmin } = usePerfil();
   const [autenticado, setAutenticado] = useState(false);
   const [contas, setContas] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,27 +129,10 @@ export default function DespesasPrivadas() {
   const [gruposPixExpandidos, setGruposPixExpandidos] = useState({});
 
   useEffect(() => {
-    let ativo = true;
-    (async () => {
-      try {
-        const me = await base44.auth.me();
-        if (!ativo) return;
-        if (me?.email === EMAIL_AUTORIZADO) {
-          setAutorizado(true);
-        } else {
-          setAutorizado(false);
-          navigate(createPageUrl("Dashboard"), { replace: true });
-        }
-      } catch {
-        if (!ativo) return;
-        setAutorizado(false);
-        navigate(createPageUrl("Dashboard"), { replace: true });
-      } finally {
-        if (ativo) setAuthChecando(false);
-      }
-    })();
-    return () => { ativo = false; };
-  }, [navigate]);
+    if (!isAdmin) {
+      navigate(createPageUrl("Dashboard"), { replace: true });
+    }
+  }, [isAdmin, navigate]);
 
   useEffect(() => {
     if (autenticado) {
@@ -361,12 +342,8 @@ export default function DespesasPrivadas() {
     }
   };
 
-  if (authChecando || !autorizado) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-      </div>
-    );
+  if (!isAdmin) {
+    return null;
   }
 
   if (!autenticado) {
