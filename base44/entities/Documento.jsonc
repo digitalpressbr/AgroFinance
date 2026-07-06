@@ -96,6 +96,16 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "user_condition": {
+            "email": "contato@cerradoconsultoria.agr.br"
+          }
+        },
+        {
+          "user_condition": {
+            "email": "rodrigo@cerradoconsultoria.agr.br"
+          }
         }
       ]
     },
@@ -107,6 +117,16 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "email": "contato@cerradoconsultoria.agr.br"
+          }
+        },
+        {
+          "user_condition": {
+            "email": "rodrigo@cerradoconsultoria.agr.br"
           }
         }
       ]
