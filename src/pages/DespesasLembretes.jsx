@@ -768,9 +768,9 @@ ${valor}`
       dadosSalvar = { editingId: editingItem.id, recorrente: false, dados: { ...formDataConta, valor: valorLimpo, dias_antes_avisar: parseInt(formDataConta.dias_antes_avisar) || 3, parcelas_total: formDataConta.recorrente ? parseInt(formDataConta.parcelas_total) : null, grupo_whatsapp_id: "120363424659062662@g.us" } };
     } else if (formDataConta.recorrente && formDataConta.parcelas_total > 0) {
       const grupoId = `rec_${Date.now()}`;
-      dadosSalvar = { editingId: null, recorrente: true, dados: { ...formDataConta, valor: valorLimpo, dias_antes_avisar: parseInt(formDataConta.dias_antes_avisar) || 3, parcelas_total: parseInt(formDataConta.parcelas_total), parcela_atual: 1, grupo_recorrencia_id: grupoId, codigo_barras: null, boleto_anexo: null, grupo_whatsapp_id: "120363424659062662@g.us" } };
+      dadosSalvar = { editingId: null, recorrente: true, dados: { ...formDataConta, valor: valorLimpo, dias_antes_avisar: parseInt(formDataConta.dias_antes_avisar) || 3, parcelas_total: parseInt(formDataConta.parcelas_total), parcela_atual: 1, grupo_recorrencia_id: grupoId, codigo_barras: null, boleto_anexo: null, grupo_whatsapp_id: "120363424659062662@g.us", privado: isAdmin ? true : (formDataConta.privado || false) } };
     } else {
-      dadosSalvar = { editingId: null, recorrente: false, dados: { ...formDataConta, valor: valorLimpo, dias_antes_avisar: parseInt(formDataConta.dias_antes_avisar) || 3, recorrente: false, parcelas_total: null, parcela_atual: null, grupo_recorrencia_id: null, grupo_whatsapp_id: "120363424659062662@g.us" } };
+      dadosSalvar = { editingId: null, recorrente: false, dados: { ...formDataConta, valor: valorLimpo, dias_antes_avisar: parseInt(formDataConta.dias_antes_avisar) || 3, recorrente: false, parcelas_total: null, parcela_atual: null, grupo_recorrencia_id: null, grupo_whatsapp_id: "120363424659062662@g.us", privado: isAdmin ? true : (formDataConta.privado || false) } };
     }
 
     // Verificar duplicata apenas ao criar nova conta: mesma descrição + mesmo vencimento (independente do valor)
@@ -816,7 +816,8 @@ ${valor}`
         await base44.entities.Lembrete.update(editingItem.id, dados);
         toast.success("Lembrete atualizado com sucesso!", { duration: 3000 });
       } else {
-        await base44.entities.Lembrete.create(dados);
+        const dadosCriar = { ...dados, privado: isAdmin ? true : (dados.privado || false) };
+        await base44.entities.Lembrete.create(dadosCriar);
         toast.success("Lembrete cadastrado com sucesso!", { duration: 3000 });
       }
 
@@ -1135,8 +1136,8 @@ ${valor}`
     URL.revokeObjectURL(url);
     toast.success('CSV exportado com sucesso!');
   };
-  const lembretesAtivos = lembretes.filter(l => l.ativo !== false && !l.concluido);
-  const lembretesConcluidos = lembretes.filter(l => l.concluido);
+  const lembretesAtivos = lembretes.filter(l => l.ativo !== false && !l.concluido && (isAdmin || !l.privado));
+  const lembretesConcluidos = lembretes.filter(l => l.concluido && (isAdmin || !l.privado));
 
   // Agrupar contas pagas por descrição
   const contasPagasAgrupadas = contasPagas.reduce((grupos, conta) => {

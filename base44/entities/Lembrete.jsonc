@@ -84,6 +84,11 @@
     "observacoes": {
       "type": "string",
       "description": "Observa\u00e7\u00f5es adicionais sobre o lembrete"
+    },
+    "privado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o lembrete \u00e9 privado (vis\u00edvel apenas no Modo Admin)"
     }
   },
   "required": [
