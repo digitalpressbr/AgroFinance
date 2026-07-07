@@ -106,45 +106,70 @@
         }
       }
     },
+    "credenciais": {
+      "type": "array",
+      "description": "Lista din\u00e2mica de credenciais de acesso (plataforma, login e senha)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "plataforma": {
+            "type": "string",
+            "description": "Nome da plataforma (ou 'Outro' para nome livre)"
+          },
+          "plataforma_custom": {
+            "type": "string",
+            "description": "Nome livre da plataforma quando 'plataforma' = 'Outro'"
+          },
+          "login": {
+            "type": "string",
+            "description": "Login/usu\u00e1rio/e-mail/CPF"
+          },
+          "senha": {
+            "type": "string",
+            "description": "Senha de acesso"
+          }
+        }
+      }
+    },
     "login_email_pessoal": {
       "type": "string",
-      "description": "Login do e-mail pessoal"
+      "description": "Login do e-mail pessoal (legado \u2014 mantido como backup)"
     },
     "senha_email_pessoal": {
       "type": "string",
-      "description": "Senha do e-mail pessoal"
+      "description": "Senha do e-mail pessoal (legado \u2014 mantido como backup)"
     },
     "login_registro_ambiental": {
       "type": "string",
-      "description": "Login do registro ambiental"
+      "description": "Login do registro ambiental (legado \u2014 mantido como backup)"
     },
     "senha_registro_ambiental": {
       "type": "string",
-      "description": "Senha do registro ambiental"
+      "description": "Senha do registro ambiental (legado \u2014 mantido como backup)"
     },
     "login_eagro": {
       "type": "string",
-      "description": "Login do E-AGRO"
+      "description": "Login do E-AGRO (legado \u2014 mantido como backup)"
     },
     "senha_eagro": {
       "type": "string",
-      "description": "Senha do E-AGRO"
+      "description": "Senha do E-AGRO (legado \u2014 mantido como backup)"
     },
     "login_sidago": {
       "type": "string",
-      "description": "Login do SIDAGO - Agrodefesa"
+      "description": "Login do SIDAGO - Agrodefesa (legado \u2014 mantido como backup)"
     },
     "senha_sidago": {
       "type": "string",
-      "description": "Senha do SIDAGO - Agrodefesa"
+      "description": "Senha do SIDAGO - Agrodefesa (legado \u2014 mantido como backup)"
     },
     "login_govbr": {
       "type": "string",
-      "description": "Login do Gov.br"
+      "description": "Login do Gov.br (legado \u2014 mantido como backup)"
     },
     "senha_govbr": {
       "type": "string",
-      "description": "Senha do Gov.br"
+      "description": "Senha do Gov.br (legado \u2014 mantido como backup)"
     },
     "marca_gado_imagem_url": {
       "type": "string",

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Save, X, Search, Loader2, Eye, EyeOff, Copy, Plus, Upload, Image as ImageIcon, Send, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import CredenciaisSection from "./CredenciaisSection";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -115,15 +116,9 @@ export default function FormularioCliente({ cliente, onSubmit, onCancel }) {
     conta_corrente: "",
     observacoes: ""
   }]);
-  
-  // Estados para mostrar/ocultar senhas
-  const [showPasswords, setShowPasswords] = useState({
-    senha_email_pessoal: false,
-    senha_registro_ambiental: false,
-    senha_eagro: false,
-    senha_sidago: false,
-    senha_govbr: false
-  });
+
+  // Estado da lista dinâmica de credenciais
+  const [credenciais, setCredenciais] = useState([]);
 
   useEffect(() => {
     carregarGrupos(false);
@@ -139,6 +134,29 @@ export default function FormularioCliente({ cliente, onSubmit, onCancel }) {
           conta_corrente: "",
           observacoes: ""
         }]);
+      }
+
+      // Credenciais: se já existir, usa direto. Se não existir mas houver campos fixos antigos, migra.
+      if (cliente.credenciais && cliente.credenciais.length > 0) {
+        setCredenciais(cliente.credenciais);
+      } else {
+        const migradas = [];
+        if (cliente.login_email_pessoal || cliente.senha_email_pessoal) {
+          migradas.push({ plataforma: "E-mail pessoal", login: cliente.login_email_pessoal || "", senha: cliente.senha_email_pessoal || "" });
+        }
+        if (cliente.login_registro_ambiental || cliente.senha_registro_ambiental) {
+          migradas.push({ plataforma: "Registro Ambiental", login: cliente.login_registro_ambiental || "", senha: cliente.senha_registro_ambiental || "" });
+        }
+        if (cliente.login_eagro || cliente.senha_eagro) {
+          migradas.push({ plataforma: "E-AGRO", login: cliente.login_eagro || "", senha: cliente.senha_eagro || "" });
+        }
+        if (cliente.login_sidago || cliente.senha_sidago) {
+          migradas.push({ plataforma: "SIDAGO/Agrodefesa", login: cliente.login_sidago || "", senha: cliente.senha_sidago || "" });
+        }
+        if (cliente.login_govbr || cliente.senha_govbr) {
+          migradas.push({ plataforma: "Gov.br", login: cliente.login_govbr || "", senha: cliente.senha_govbr || "" });
+        }
+        setCredenciais(migradas);
       }
     } else {
       setFormData({
@@ -186,6 +204,7 @@ export default function FormularioCliente({ cliente, onSubmit, onCancel }) {
         conta_corrente: "",
         observacoes: ""
       }]);
+      setCredenciais([]);
     }
   }, [cliente]);
 
@@ -336,10 +355,6 @@ export default function FormularioCliente({ cliente, onSubmit, onCancel }) {
     } else {
       toast.error("É necessário manter pelo menos uma conta bancária.");
     }
-  };
-
-  const togglePasswordVisibility = (field) => {
-    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
   const copyToClipboard = async (text) => {
@@ -495,11 +510,12 @@ export default function FormularioCliente({ cliente, onSubmit, onCancel }) {
       }
     }
     
-    // Incluir contas bancárias no formData
+    // Incluir contas bancárias e credenciais no formData
     const dadosParaSalvar = {
       ...formData,
       aniversario_grupo_whatsapp_id: "120363129843143452@g.us",
-      contas_bancarias: contasBancarias.filter(conta => conta.banco || conta.agencia || conta.conta_corrente || conta.observacoes) // Enviar apenas contas preenchidas
+      contas_bancarias: contasBancarias.filter(conta => conta.banco || conta.agencia || conta.conta_corrente || conta.observacoes), // Enviar apenas contas preenchidas
+      credenciais: credenciais.filter(c => (c.plataforma || c.plataforma_custom || c.login || c.senha))
     };
     
     onSubmit(dadosParaSalvar);
@@ -969,282 +985,11 @@ export default function FormularioCliente({ cliente, onSubmit, onCancel }) {
             </div>
           </div>
 
-          {/* Acessos e Credenciais */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-green-100">
-              Acessos e Credenciais
-            </h3>
-            <p className="text-sm text-amber-700 bg-amber-50 p-3 rounded-lg mb-4 border border-amber-200">
-              🔒 <strong>Informação Sensível:</strong> Estes dados são criptografados e protegidos. Use apenas para finalidades autorizadas.
-            </p>
-
-            <div className="space-y-6">
-              {/* E-mail pessoal */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-gray-100">
-                <div>
-                  <Label htmlFor="login_email_pessoal" className="text-green-700 font-medium">E-mail pessoal – Login</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="login_email_pessoal"
-                      type="email"
-                      value={formData.login_email_pessoal || ""}
-                      onChange={e => handleInputChange('login_email_pessoal', e.target.value)}
-                      placeholder="Informe o usuário/e-mail"
-                      maxLength={120}
-                    />
-                    {formData.login_email_pessoal && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => copyToClipboard(formData.login_email_pessoal)}
-                        className="shrink-0"
-                        title="Copiar login"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="senha_email_pessoal" className="text-green-700 font-medium">E-mail pessoal – Senha de Acesso</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="senha_email_pessoal"
-                      type={showPasswords.senha_email_pessoal ? "text" : "password"}
-                      value={formData.senha_email_pessoal || ""}
-                      onChange={e => handleInputChange('senha_email_pessoal', e.target.value)}
-                      placeholder="Informe a senha"
-                      maxLength={120}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => togglePasswordVisibility('senha_email_pessoal')}
-                      className="shrink-0"
-                      title={showPasswords.senha_email_pessoal ? "Ocultar senha" : "Mostrar senha"}
-                    >
-                      {showPasswords.senha_email_pessoal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Registro Ambiental */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-gray-100">
-                <div>
-                  <Label htmlFor="login_registro_ambiental" className="text-green-700 font-medium">Registro Ambiental – Login</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="login_registro_ambiental"
-                      type="text"
-                      value={formData.login_registro_ambiental || ""}
-                      onChange={e => handleInputChange('login_registro_ambiental', e.target.value)}
-                      placeholder="Informe o usuário/e-mail"
-                      maxLength={120}
-                    />
-                    {formData.login_registro_ambiental && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => copyToClipboard(formData.login_registro_ambiental)}
-                        className="shrink-0"
-                        title="Copiar login"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="senha_registro_ambiental" className="text-green-700 font-medium">Registro Ambiental – Senha de Acesso</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="senha_registro_ambiental"
-                      type={showPasswords.senha_registro_ambiental ? "text" : "password"}
-                      value={formData.senha_registro_ambiental || ""}
-                      onChange={e => handleInputChange('senha_registro_ambiental', e.target.value)}
-                      placeholder="Informe a senha"
-                      maxLength={120}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => togglePasswordVisibility('senha_registro_ambiental')}
-                      className="shrink-0"
-                      title={showPasswords.senha_registro_ambiental ? "Ocultar senha" : "Mostrar senha"}
-                    >
-                      {showPasswords.senha_registro_ambiental ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* E-AGRO */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-gray-100">
-                <div>
-                  <Label htmlFor="login_eagro" className="text-green-700 font-medium">E-AGRO – Login</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="login_eagro"
-                      type="text"
-                      value={formData.login_eagro || ""}
-                      onChange={e => handleInputChange('login_eagro', e.target.value)}
-                      placeholder="Informe o usuário/e-mail"
-                      maxLength={120}
-                    />
-                    {formData.login_eagro && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => copyToClipboard(formData.login_eagro)}
-                        className="shrink-0"
-                        title="Copiar login"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="senha_eagro" className="text-green-700 font-medium">E-AGRO – Senha de Acesso</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="senha_eagro"
-                      type={showPasswords.senha_eagro ? "text" : "password"}
-                      value={formData.senha_eagro || ""}
-                      onChange={e => handleInputChange('senha_eagro', e.target.value)}
-                      placeholder="Informe a senha"
-                      maxLength={120}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => togglePasswordVisibility('senha_eagro')}
-                      className="shrink-0"
-                      title={showPasswords.senha_eagro ? "Ocultar senha" : "Mostrar senha"}
-                    >
-                      {showPasswords.senha_eagro ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* SIDAGO - Agrodefesa */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-gray-100">
-                <div>
-                  <Label htmlFor="login_sidago" className="text-green-700 font-medium">SIDAGO – Agrodefesa – Login</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="login_sidago"
-                      type="text"
-                      value={formData.login_sidago || ""}
-                      onChange={e => handleInputChange('login_sidago', e.target.value)}
-                      placeholder="Informe o usuário/e-mail"
-                      maxLength={120}
-                    />
-                    {formData.login_sidago && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => copyToClipboard(formData.login_sidago)}
-                        className="shrink-0"
-                        title="Copiar login"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="senha_sidago" className="text-green-700 font-medium">SIDAGO – Agrodefesa – Senha de Acesso</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="senha_sidago"
-                      type={showPasswords.senha_sidago ? "text" : "password"}
-                      value={formData.senha_sidago || ""}
-                      onChange={e => handleInputChange('senha_sidago', e.target.value)}
-                      placeholder="Informe a senha"
-                      maxLength={120}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => togglePasswordVisibility('senha_sidago')}
-                      className="shrink-0"
-                      title={showPasswords.senha_sidago ? "Ocultar senha" : "Mostrar senha"}
-                    >
-                      {showPasswords.senha_sidago ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Gov.br */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="login_govbr" className="text-green-700 font-medium">Gov.br – Login</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="login_govbr"
-                      type="text"
-                      value={formData.login_govbr || ""}
-                      onChange={e => handleInputChange('login_govbr', e.target.value)}
-                      placeholder="Informe o usuário/e-mail"
-                      maxLength={120}
-                    />
-                    {formData.login_govbr && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => copyToClipboard(formData.login_govbr)}
-                        className="shrink-0"
-                        title="Copiar login"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="senha_govbr" className="text-green-700 font-medium">Gov.br – Senha de Acesso</Label>
-                  <div className="flex gap-2">
-                    <Input 
-                      id="senha_govbr"
-                      type={showPasswords.senha_govbr ? "text" : "password"}
-                      value={formData.senha_govbr || ""}
-                      onChange={e => handleInputChange('senha_govbr', e.target.value)}
-                      placeholder="Informe a senha"
-                      maxLength={120}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => togglePasswordVisibility('senha_govbr')}
-                      className="shrink-0"
-                      title={showPasswords.senha_govbr ? "Ocultar senha" : "Mostrar senha"}
-                    >
-                      {showPasswords.senha_govbr ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-500 mt-4 p-3 bg-gray-50 rounded-lg">
-              ℹ️ <strong>Nota de Segurança:</strong> Todos os campos de senha são opcionais e serão criptografados no banco de dados. 
-              Estas informações são confidenciais e devem ser tratadas com máximo cuidado.
-            </p>
-          </div>
+          {/* Acessos e Credenciais - Lista dinâmica */}
+          <CredenciaisSection
+            credenciais={credenciais}
+            onChange={setCredenciais}
+          />
 
           <div className="flex justify-end gap-4 pt-6 border-t border-green-100">
             <Button type="button" variant="outline" onClick={onCancel} className="border-green-300 text-green-700 hover:bg-green-50">
