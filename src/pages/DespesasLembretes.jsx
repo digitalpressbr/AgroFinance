@@ -1578,10 +1578,18 @@ ${valor}`
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                    type="text"
+                    type="search"
+                    name="busca-conta-descricao"
                     value={buscaConta}
                     onChange={(e) => setBuscaConta(e.target.value)}
                     placeholder="Buscar por descrição..."
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    data-form-type="other"
+                    data-1p-ignore
+                    data-lpignore="true"
                     className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
                   />
                 </div>
