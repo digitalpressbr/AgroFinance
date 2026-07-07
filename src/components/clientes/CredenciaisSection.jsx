@@ -19,10 +19,11 @@ const PLATAFORMAS = [
 ];
 
 export default function CredenciaisSection({ credenciais, onChange }) {
-  const [showPasswords, setShowPasswords] = useState({});
+  // Senhas começam VISÍVEIS por padrão. Só ficam ocultas quando o usuário clica no olho.
+  const [hiddenPasswords, setHiddenPasswords] = useState({});
 
   const toggleShow = (idx) => {
-    setShowPasswords(prev => ({ ...prev, [idx]: !prev[idx] }));
+    setHiddenPasswords(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
   const handleFieldChange = (idx, field, value) => {
@@ -121,12 +122,13 @@ export default function CredenciaisSection({ credenciais, onChange }) {
                 {idx === 0 && <Label className="text-xs text-gray-600 font-medium mb-1 block">Senha</Label>}
                 <div className="flex gap-1">
                   <Input
-                    type={showPasswords[idx] ? "text" : "password"}
+                    type={hiddenPasswords[idx] ? "password" : "text"}
                     value={cred.senha || ""}
                     onChange={(e) => handleFieldChange(idx, 'senha', e.target.value)}
                     placeholder="Senha"
                     className="h-9 text-sm"
                     maxLength={120}
+                    autoComplete="off"
                   />
                   <Button
                     type="button"
@@ -134,9 +136,9 @@ export default function CredenciaisSection({ credenciais, onChange }) {
                     size="icon"
                     onClick={() => toggleShow(idx)}
                     className="h-9 w-9 shrink-0"
-                    title={showPasswords[idx] ? "Ocultar senha" : "Mostrar senha"}
+                    title={hiddenPasswords[idx] ? "Mostrar senha" : "Ocultar senha"}
                   >
-                    {showPasswords[idx] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {hiddenPasswords[idx] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                 </div>
               </div>
