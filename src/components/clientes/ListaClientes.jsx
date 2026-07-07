@@ -31,7 +31,12 @@ export default function ListaClientes({ clientes, isLoading, onEdit, onDelete })
   return (
     <div className="space-y-4">
       {clientes.map(cliente => (
-        <Card key={cliente.id} className="shadow-md hover:shadow-lg transition-shadow">
+        <Card
+          key={cliente.id}
+          onClick={() => onEdit(cliente)}
+          className="shadow-md hover:shadow-lg hover:bg-green-50/40 transition-all cursor-pointer"
+          title="Clique para editar este cliente"
+        >
           <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-4 flex-1">
               <div className="bg-green-100 p-3 rounded-full">
@@ -59,7 +64,7 @@ export default function ListaClientes({ clientes, isLoading, onEdit, onDelete })
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={() => onEdit(cliente)}
+                onClick={(e) => { e.stopPropagation(); onEdit(cliente); }}
                 className="text-green-700 hover:text-green-800 hover:bg-green-50"
                 title="Editar cliente"
               >
@@ -68,7 +73,7 @@ export default function ListaClientes({ clientes, isLoading, onEdit, onDelete })
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={() => handleDelete(cliente)}
+                onClick={(e) => { e.stopPropagation(); handleDelete(cliente); }}
                 className="text-red-600 hover:text-red-800 hover:bg-red-50"
                 title="Excluir cliente"
               >
